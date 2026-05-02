@@ -4,6 +4,13 @@ import { Sun, Moon } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { FloatingParticles, TransparentLogo, Marquee } from '../App';
 
+// Assets
+import logoImg from '../assets/logo.png';
+import logoHeroImg from '../assets/logo-hero.png';
+import heroMainImg from '../assets/hero-main.png';
+import openseaImg from '../assets/opensea.png';
+import aboutImg from '../assets/about_new.png';
+
 export default function Home() {
   const [theme, setTheme] = useState<'light' | 'dark'>('dark');
   const toggleTheme = () => setTheme(prev => prev === 'light' ? 'dark' : 'light');
@@ -55,7 +62,7 @@ export default function Home() {
         {/* LEFT PART: LOGO */}
         <div className="flex-1 flex items-center gap-3">
           <div className="w-10 h-10 rounded-full overflow-hidden border border-white/20">
-            <img src="/logo.png" alt="Logo" className="w-full h-full object-cover" />
+            <img src={logoImg} alt="Logo" className="w-full h-full object-cover" />
           </div>
           <span className="text-xl font-black uppercase italic tracking-tighter">10K SQUAD</span>
         </div>
@@ -80,7 +87,7 @@ export default function Home() {
       <header className="pt-[100px] pb-20 px-10 max-w-7xl mx-auto flex flex-col md:flex-row items-start justify-between gap-16">
         <motion.div initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }} className="max-w-2xl text-center md:text-left">
           <div className="mb-10">
-            <TransparentLogo src="/logo-hero.png" className="w-[130px] md:w-[200px] mx-auto md:mx-0" theme={theme} />
+            <TransparentLogo src={logoHeroImg} className="w-[130px] md:w-[200px] mx-auto md:mx-0" theme={theme} />
           </div>
           <div className="text-xl md:text-2xl font-black mb-6 uppercase tracking-tight text-[#ff6b9d]">
             3,333 hand drawn
@@ -100,7 +107,7 @@ export default function Home() {
                   : 'bg-white text-black border-black/5 hover:border-black/20 shadow-black/5'
               }`}
             >
-              <img src="/opensea.png" alt="OpenSea" className="w-6 h-6 object-contain rounded-full" />
+              <img src={openseaImg} alt="OpenSea" className="w-6 h-6 object-contain rounded-full" />
               <span className="text-xl text-nowrap">Buy on OpenSea</span>
             </motion.a>
 
@@ -141,7 +148,7 @@ export default function Home() {
           animate={{ opacity: 1, scale: 1, rotate: 0 }} 
           className="w-full max-w-[450px] aspect-square rounded-[4rem] overflow-hidden border-8 border-current/10 shadow-[0_0_80px_rgba(155,89,182,0.2)]"
         >
-          <img src="/hero-main.png" alt="Squad Featured" className="w-full h-full object-cover" />
+          <img src={heroMainImg} alt="Squad Featured" className="w-full h-full object-cover" />
         </motion.div>
       </header>
  
@@ -251,7 +258,7 @@ export default function Home() {
               whileHover={{ rotate: 3, scale: 1.05 }}
               className="relative aspect-square rounded-[5rem] overflow-hidden border-[12px] border-current/5 shadow-3xl"
             >
-              <img src="/about_new.png" alt="Vision" className="w-full h-full object-cover" />
+              <img src={aboutImg} alt="Vision" className="w-full h-full object-cover" />
             </motion.div>
           </div>
         </div>
@@ -353,7 +360,7 @@ export default function Home() {
           <div className="space-y-10">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-full overflow-hidden border border-current/20">
-                <img src="/logo.png" alt="Logo" className="w-full h-full object-cover" />
+                <img src={logoImg} alt="Logo" className="w-full h-full object-cover" />
               </div>
               <span className="text-3xl font-black uppercase italic tracking-tighter">10K SQUAD</span>
             </div>
@@ -362,7 +369,7 @@ export default function Home() {
             </p>
             <div className="flex items-center gap-6">
               <a href="https://opensea.io/collection/the-10k-squad-350905768" target="_blank" className="opacity-50 hover:opacity-100 transition-all hover:scale-110">
-                <img src="/opensea.png" alt="OpenSea" className="w-6 h-6 object-contain rounded-full" />
+                <img src={openseaImg} alt="OpenSea" className="w-6 h-6 object-contain rounded-full" />
               </a>
               <a href="https://x.com/the10ksquad" target="_blank" className="opacity-50 hover:opacity-100 transition-all hover:scale-110">
                 <svg viewBox="0 0 24 24" aria-hidden="true" className="w-6 h-6 fill-current"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"></path></svg>

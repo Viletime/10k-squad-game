@@ -43,9 +43,7 @@ export const TransparentLogo = ({ src, className, theme }: { src: string, classN
   useEffect(() => {
     const img = new Image();
     
-    // Tenta resolver o caminho de forma absoluta se necessário
-    const absolutePath = src.startsWith('http') ? src : window.location.origin + src;
-    
+    // Se for uma URL externa (http), usamos crossOrigin. Para imagens locais/assets, não.
     if (src.startsWith('http')) {
       img.crossOrigin = "anonymous";
     }
@@ -53,13 +51,8 @@ export const TransparentLogo = ({ src, className, theme }: { src: string, classN
     img.src = src;
     
     img.onerror = () => {
-      // Se falhar com o caminho relativo, tenta o absoluto antes de desistir
-      if (img.src !== absolutePath) {
-        img.src = absolutePath;
-      } else {
-        console.warn("Falha crítica ao carregar imagem:", src);
-        setError(true);
-      }
+      console.warn("Falha ao carregar imagem:", src);
+      setError(true);
     };
 
     img.onload = () => {
@@ -76,6 +69,7 @@ export const TransparentLogo = ({ src, className, theme }: { src: string, classN
         const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
         const data = imageData.data;
         
+        // Cor do pixel superior esquerdo para remover o fundo
         const targetR = data[0];
         const targetG = data[1];
         const targetB = data[2];
@@ -100,9 +94,8 @@ export const TransparentLogo = ({ src, className, theme }: { src: string, classN
         ctx.putImageData(imageData, 0, 0);
         setProcessedSrc(canvas.toDataURL());
       } catch (err) {
-        console.error("Erro no processamento do Canvas (CORS provavelmente):", err);
-        // Se der erro de CORS no canvas, usamos a imagem original
-        setError(true);
+        console.error("Erro no processamento do Canvas:", err);
+        setError(true); // Fallback para a imagem original
       }
     };
   }, [src]);

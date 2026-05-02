@@ -7,6 +7,21 @@ import { db, ensureAuth, handleFirestoreError, OperationType } from '../lib/fire
 import { collection, addDoc, query, orderBy, limit, getDocs, serverTimestamp } from 'firebase/firestore';
 import { playFlipSound, playSuccessSound, playErrorSound, playVictorySound, getMuted, setMuted as saveMutePreference } from '../lib/sounds';
 
+// Assets
+import cardBackImg from '../assets/card-back-owl.png';
+import gamephoto1 from '../assets/gamephoto1.png';
+import gamephoto2 from '../assets/gamephoto2.png';
+import gamephoto3 from '../assets/gamephoto3.png';
+import gamephoto4 from '../assets/gamephoto4.png';
+import gamephoto5 from '../assets/gamephoto5.png';
+import gamephoto6 from '../assets/gamephoto6.png';
+import gamephoto7 from '../assets/gamephoto7.png';
+import gamephoto8 from '../assets/gamephoto8.png';
+import gamephoto9 from '../assets/gamephoto9.png';
+import gamephoto10 from '../assets/gamephoto10.png';
+import gamephoto11 from '../assets/gamephoto11.png';
+import gamephoto12 from '../assets/gamephoto12.png';
+
 export default function Game() {
   const [theme, setTheme] = useState<'light' | 'dark'>('dark');
   const [isMuted, setIsMuted] = useState(getMuted());
@@ -45,18 +60,18 @@ export default function Game() {
   ];
 
   const allCardImages = [
-    { "src": "/gamephoto1.png" },
-    { "src": "/gamephoto2.png" },
-    { "src": "/gamephoto3.png" },
-    { "src": "/gamephoto4.png" },
-    { "src": "/gamephoto5.png" },
-    { "src": "/gamephoto6.png" },
-    { "src": "/gamephoto7.png" },
-    { "src": "/gamephoto8.png" },
-    { "src": "/gamephoto9.png" },
-    { "src": "/gamephoto10.png" },
-    { "src": "/gamephoto11.png" },
-    { "src": "/gamephoto12.png" }
+    { "src": gamephoto1 },
+    { "src": gamephoto2 },
+    { "src": gamephoto3 },
+    { "src": gamephoto4 },
+    { "src": gamephoto5 },
+    { "src": gamephoto6 },
+    { "src": gamephoto7 },
+    { "src": gamephoto8 },
+    { "src": gamephoto9 },
+    { "src": gamephoto10 },
+    { "src": gamephoto11 },
+    { "src": gamephoto12 }
   ];
 
   const getDifficultySettings = () => {
@@ -389,7 +404,7 @@ export default function Game() {
                           </div>
                           {/* Back of card */}
                           <div className="absolute inset-0 [backface-visibility:hidden] rounded-xl border-2 border-current/10 bg-[#0f0f0f] flex items-center justify-center overflow-hidden">
-                              <img src="/card-back-owl.png" alt="card back" className="w-full h-full object-cover" />
+                              <img src={cardBackImg} alt="card back" className="w-full h-full object-cover" />
                           </div>
                         </div>
                       </div>
