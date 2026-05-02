@@ -1,4 +1,3 @@
-import { useState, useEffect, useRef } from 'react';
 import { motion } from 'motion/react';
 
 // --- COMPONENTS ---
@@ -35,87 +34,15 @@ export const FloatingParticles = () => {
 };
 
 export const TransparentLogo = ({ src, className, theme }: { src: string, className?: string, theme?: 'light' | 'dark' }) => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [processedSrc, setProcessedSrc] = useState<string | null>(null);
-
-  const [error, setError] = useState(false);
-
-  useEffect(() => {
-    const img = new Image();
-    
-    // Se for uma URL externa (http), usamos crossOrigin. Para imagens locais/assets, não.
-    if (src.startsWith('http')) {
-      img.crossOrigin = "anonymous";
-    }
-    
-    img.src = src;
-    
-    img.onerror = () => {
-      console.warn("Falha ao carregar imagem:", src);
-      setError(true);
-    };
-
-    img.onload = () => {
-      try {
-        const canvas = canvasRef.current;
-        if (!canvas) return;
-        const ctx = canvas.getContext('2d', { willReadFrequently: true });
-        if (!ctx) return;
-        
-        canvas.width = img.width;
-        canvas.height = img.height;
-        ctx.drawImage(img, 0, 0);
-        
-        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        const data = imageData.data;
-        
-        // Cor do pixel superior esquerdo para remover o fundo
-        const targetR = data[0];
-        const targetG = data[1];
-        const targetB = data[2];
-        const tolerance = 30;
-
-        for (let i = 0; i < data.length; i += 4) {
-          const r = data[i];
-          const g = data[i+1];
-          const b = data[i+2];
-          
-          const distance = Math.sqrt(
-            Math.pow(r - targetR, 2) + 
-            Math.pow(g - targetG, 2) + 
-            Math.pow(b - targetB, 2)
-          );
-
-          if (distance < tolerance) {
-            data[i + 3] = 0;
-          }
-        }
-        
-        ctx.putImageData(imageData, 0, 0);
-        setProcessedSrc(canvas.toDataURL());
-      } catch (err) {
-        console.error("Erro no processamento do Canvas:", err);
-        setError(true); // Fallback para a imagem original
-      }
-    };
-  }, [src]);
-
-  const finalSrc = processedSrc || src;
-
   return (
     <div className={className}>
-      <canvas ref={canvasRef} style={{ display: 'none' }} />
-      {processedSrc || error ? (
-        <motion.img 
-          initial={{ opacity: 0 }} 
-          animate={{ opacity: 1 }} 
-          src={finalSrc} 
-          alt="Logo" 
-          className={`w-full h-full object-contain ${theme === 'light' ? 'brightness-0 opacity-80' : ''}`} 
-        />
-      ) : (
-        <div className="w-full h-full animate-pulse bg-current/10 rounded-lg" />
-      )}
+      <motion.img 
+        initial={{ opacity: 0 }} 
+        animate={{ opacity: 1 }} 
+        src={src} 
+        alt="Logo" 
+        className={`w-full h-full object-contain ${theme === 'light' ? 'brightness-0 opacity-80' : ''}`} 
+      />
     </div>
   );
 };
