@@ -1,0 +1,44 @@
+{
+  "entities": {
+    "Score": {
+      "title": "Score",
+      "description": "A leaderboard entry for a finished game",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Name of the player"
+        },
+        "score": {
+          "type": "integer",
+          "description": "Total score calculated"
+        },
+        "difficulty": {
+          "type": "string",
+          "enum": ["EASY", "MEDIUM", "HARD"],
+          "description": "Level of difficulty"
+        },
+        "time": {
+          "type": "integer",
+          "description": "Time in seconds"
+        },
+        "moves": {
+          "type": "integer",
+          "description": "Number of moves (turns)"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of when the score was saved"
+        }
+      },
+      "required": ["name", "score", "difficulty", "time", "moves", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/leaderboard/{scoreId}": {
+      "schema": "Score",
+      "description": "Collection of game scores"
+    }
+  }
+}

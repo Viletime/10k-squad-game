@@ -1,0 +1,46 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function isValidScore(data) {
+      return data.keys().hasAll(['name', 'score', 'difficulty', 'time', 'moves', 'createdAt']) &&
+             data.keys().size() == 6 &&
+             data.name is string && data.name.size() > 0 && data.name.size() <= 20 &&
+             data.score is int && data.score >= 0 &&
+             data.difficulty in ['EASY', 'MEDIUM', 'HARD'] &&
+             data.time is int && data.time >= 0 &&
+             data.moves is int && data.moves >= 0 &&
+             data.createdAt == request.time;
+    }
+
+    match /leaderboard/{scoreId} {
+      // Allow anyone to read the leaderboard (for high scores display)
+      // In a real app we might want to restrict this more, but for a public leaderboard it's common.
+      allow list: if true;
+      allow get: if true;
+
+      // Allow creating a new score entry. No authentication required for this specific game 
+      // as it's a simple arcade style, but we validate strictly.
+      allow create: if isValidId(scoreId) && isValidScore(incoming());
+      
+      // Updates and deletes are NOT allowed for score entries for integrity
+      allow update, delete: if false;
+    }
+  }
+}
