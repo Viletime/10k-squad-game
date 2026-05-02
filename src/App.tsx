@@ -42,16 +42,26 @@ export const TransparentLogo = ({ src, className, theme }: { src: string, classN
 
   useEffect(() => {
     const img = new Image();
-    // Only use anonymous if it's not a local path to avoid potential CORS issues on some hosts
+    
+    // Tenta resolver o caminho de forma absoluta se necessário
+    const absolutePath = src.startsWith('http') ? src : window.location.origin + src;
+    
     if (src.startsWith('http')) {
       img.crossOrigin = "anonymous";
     }
     
     img.src = src;
+    
     img.onerror = () => {
-      console.warn("Failed to load logo source:", src);
-      setError(true);
+      // Se falhar com o caminho relativo, tenta o absoluto antes de desistir
+      if (img.src !== absolutePath) {
+        img.src = absolutePath;
+      } else {
+        console.warn("Falha crítica ao carregar imagem:", src);
+        setError(true);
+      }
     };
+
     img.onload = () => {
       try {
         const canvas = canvasRef.current;
@@ -90,7 +100,8 @@ export const TransparentLogo = ({ src, className, theme }: { src: string, classN
         ctx.putImageData(imageData, 0, 0);
         setProcessedSrc(canvas.toDataURL());
       } catch (err) {
-        console.error("Canvas processing error:", err);
+        console.error("Erro no processamento do Canvas (CORS provavelmente):", err);
+        // Se der erro de CORS no canvas, usamos a imagem original
         setError(true);
       }
     };
