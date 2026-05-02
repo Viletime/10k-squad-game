@@ -40,6 +40,7 @@ export const TransparentLogo = ({ src, className, theme }: { src: string, classN
 
   useEffect(() => {
     const img = new Image();
+    img.crossOrigin = "anonymous";
     img.src = src;
     img.onload = () => {
       const canvas = canvasRef.current;
