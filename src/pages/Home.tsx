@@ -42,7 +42,7 @@ export default function Home() {
     totalSupply: "3,333",
     holders: "1,100+",
     floorPrice: "1,917.15",
-    totalVolume: "777K",
+    totalVolume: "777K+",
     volumeUsd: "$23K+"
   });
   const [isStatsLoading, setIsStatsLoading] = useState(true);
@@ -58,7 +58,7 @@ export default function Home() {
             holders: data.holders?.toLocaleString() || "1,100+",
             floorPrice: typeof data.floorPrice === 'number' ? data.floorPrice.toFixed(2) : "1,917.15",
             totalVolume: typeof data.totalVolume === 'number' ? 
-              (data.totalVolume > 1000 ? (data.totalVolume / 1000).toFixed(0) + "K" : data.totalVolume.toString()) : "777K",
+              (data.totalVolume > 1000 ? (data.totalVolume / 1000).toFixed(0) + "K+" : data.totalVolume.toString() + "+") : "777K+",
             volumeUsd: data.volumeUsd || "$23K+"
           });
         }
