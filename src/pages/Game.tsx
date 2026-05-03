@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import { FloatingParticles } from '../App';
 import { Volume2, VolumeX, ArrowLeft, Play, Trophy, Users, Zap } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -285,95 +285,120 @@ export default function Game() {
 
         <div className="w-full grid grid-cols-1 lg:grid-cols-[1fr_350px] gap-12 items-start">
           <div className="flex flex-col items-center w-full">
-            <div className="w-full flex flex-wrap md:flex-nowrap items-center mb-8 gap-4 px-2">
-              <div className="flex items-center gap-4 shrink-0">
-                {/* Sound Toggle */}
-                <button
-                  onClick={() => {
-                    const newMuted = !isMuted;
-                    setIsMuted(newMuted);
-                    saveMutePreference(newMuted);
-                  }}
-                  className={`w-[45px] h-[45px] flex shrink-0 items-center justify-center rounded-[15px] border-2 border-[#ff6b9d] transition-all hover:bg-[#ff6b9d] hover:text-white ${theme === 'dark' ? 'bg-[#1a1a1a] text-white' : 'bg-white text-black'}`}
-                >
-                  {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
-                </button>
-
-                {/* Difficulty Dropdown */}
-                <div className="relative z-20 shrink-0">
-                  <button
-                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                    className={`min-w-[180px] h-[45px] px-4 py-3 rounded-[15px] border-2 border-[#ff6b9d] flex justify-between items-center transition-all duration-300 hover:shadow-[0_0_15px_rgba(255,107,157,0.3)] ${theme === 'dark' ? 'bg-[#1a1a1a] text-white' : 'bg-white text-black'}`}
-                  >
-                    <span className="font-bold uppercase tracking-widest text-[12px] whitespace-nowrap">
-                      {difficulty} {getDifficultySettings().grid} · {getDifficultySettings().multiplier}
-                    </span>
-                    <span className={`ml-2 transition-transform duration-300 ${isDropdownOpen ? 'rotate-180' : ''}`}>▼</span>
-                  </button>
-
-                  {isDropdownOpen && (
-                    <ul className={`absolute top-full left-0 w-full mt-1 border-2 border-[#ff6b9d] border-t-0 rounded-b-[15px] overflow-hidden shadow-2xl z-50 transition-colors duration-500 ${theme === 'dark' ? 'bg-[#1a1a1a]' : 'bg-white'}`}>
-                      {(['EASY', 'MEDIUM', 'HARD'] as const).map((diff) => {
-                        const settings = diff === 'EASY' ? { grid: '4x3', mult: '1x' } : diff === 'MEDIUM' ? { grid: '4x4', mult: '1.5x' } : { grid: '6x4', mult: '2x' };
-                        return (
-                          <li
-                            key={diff}
-                            onClick={() => {
-                              handleDifficultyChange(diff);
-                              setIsDropdownOpen(false);
-                            }}
-                            className={`px-4 py-3 flex justify-between items-center cursor-pointer transition-all hover:bg-[#ff6b9d]/20 border-b border-[#ff6b9d]/10 last:border-0 ${difficulty === diff ? 'bg-[#ff6b9d]/30 font-bold' : ''}`}
-                          >
-                            <span className="uppercase tracking-widest text-[10px]">
-                              {diff} <span className="opacity-50 ml-2 font-normal italic">{settings.grid} · {settings.mult}</span>
-                            </span>
-                            {difficulty === diff && <span className="text-[#ff6b9d]">✓</span>}
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  )}
-                  
-                  {msg && (
-                    <motion.div 
-                      initial={{ opacity: 0, y: -10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="absolute -bottom-6 left-0 right-0 text-center text-[#ff6b9d] text-[10px] font-black uppercase italic tracking-widest"
-                    >
-                      {msg}
-                    </motion.div>
-                  )}
+            <div className="w-full flex flex-col md:flex-row items-stretch md:items-center justify-center mb-8 gap-4 px-2">
+              {/* STATS PILL */}
+              <div className={`flex-[1.2] min-h-[70px] rounded-[2rem] border-2 border-white/10 flex items-center justify-between px-6 py-3 font-mono transition-all duration-500 shadow-xl ${theme === 'dark' ? 'bg-[#2a1d35]/60 backdrop-blur-xl' : 'bg-gray-100/80 backdrop-blur-xl'}`}>
+                <div className="flex flex-col items-center gap-0.5 flex-1 p-1">
+                  <span className="text-[#ff6b9d] text-[9px] uppercase font-black tracking-widest opacity-80">SCORE</span>
+                  <span className={`text-lg sm:text-xl font-black ${theme === 'dark' ? 'text-white' : 'text-black font-bold'}`}>{score}</span>
+                </div>
+                <div className="w-[1px] h-8 bg-white/10 shrink-0" />
+                <div className="flex flex-col items-center gap-0.5 flex-1 p-1">
+                  <span className="text-[#FFD700] text-[9px] uppercase font-black tracking-widest opacity-80">COMBO</span>
+                  <span className={`text-lg sm:text-xl font-black ${theme === 'dark' ? 'text-white' : 'text-black font-bold'}`}>x{combo}</span>
+                </div>
+                <div className="w-[1px] h-8 bg-white/10 shrink-0" />
+                <div className="flex flex-col items-center gap-0.5 flex-1 p-1">
+                  <span className="text-[#ff6b9d] text-[9px] uppercase font-black tracking-widest opacity-80">TIME</span>
+                  <span className={`text-lg sm:text-xl font-black ${theme === 'dark' ? 'text-white' : 'text-black font-bold'}`}>{formatTime(time)}</span>
+                </div>
+                <div className="w-[1px] h-8 bg-white/10 shrink-0" />
+                <div className="flex flex-col items-center gap-0.5 flex-1 p-1">
+                  <span className="text-[#ff6b9d] text-[9px] uppercase font-black tracking-widest opacity-80">MOVES</span>
+                  <span className={`text-lg sm:text-xl font-black ${theme === 'dark' ? 'text-white' : 'text-black font-bold'}`}>{turns}</span>
                 </div>
               </div>
 
-              {/* Stats Box (One Line) */}
-              <div className={`flex-1 p-3 min-h-[45px] rounded-[15px] border-2 border-[#ff6b9d] flex items-center justify-around gap-4 md:gap-6 font-mono transition-colors duration-500 overflow-x-auto custom-scrollbar ${theme === 'dark' ? 'bg-[#1a1a1a]' : 'bg-white'}`}>
-                <div className="flex items-center gap-2 whitespace-nowrap">
-                  <span className="text-[#ffffff] text-[10px] uppercase font-bold">TIME:</span>
-                  <span className={`text-base font-bold ${theme === 'dark' ? 'text-white' : 'text-black'}`}>{formatTime(time)}</span>
+              {/* CONTROLS PILL */}
+              <div className={`flex-1 min-h-[70px] rounded-[2rem] border-2 border-white/10 relative transition-all duration-500 shadow-lg z-[40] ${theme === 'dark' ? 'bg-[#2a1d35]/40 backdrop-blur-sm' : 'bg-gray-100/60 backdrop-blur-sm'}`}>
+                <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 px-2 bg-transparent z-10">
+                  <span className="text-[#ff6b9d] text-[8px] font-black uppercase tracking-[0.2em] opacity-70">DIFFICULTY</span>
                 </div>
-                <span className="text-[#ff6b9d]/50">|</span>
-                <div className="flex items-center gap-2 whitespace-nowrap">
-                  <span className="text-[#9b59b6] text-[10px] uppercase font-bold">MOVES:</span>
-                  <span className={`text-base font-bold ${theme === 'dark' ? 'text-white' : 'text-black'}`}>{turns}</span>
+
+                <div className="flex items-center h-full px-6 py-2">
+                  <div className="relative flex-1">
+                    <button
+                      onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                      className={`w-full max-w-[200px] h-11 flex items-center justify-center gap-2.5 mx-auto transition-all hover:opacity-80 active:scale-95`}
+                    >
+                      <span className={`text-sm sm:text-base font-bold tracking-tight uppercase ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
+                        {difficulty} <span className="opacity-40 text-xs ml-1 tracking-normal font-medium">· {getDifficultySettings().grid}</span>
+                      </span>
+                      <span className={`text-[#ff6b9d] text-[10px] transition-transform duration-300 ${isDropdownOpen ? 'rotate-180' : ''}`}>▼</span>
+                    </button>
+
+                    <AnimatePresence>
+                      {isDropdownOpen && (
+                        <motion.ul 
+                          initial={{ opacity: 0, y: -10, x: '-50%' }}
+                          animate={{ opacity: 1, y: 0, x: '-50%' }}
+                          exit={{ opacity: 0, y: -10, x: '-50%' }}
+                          className={`absolute top-full left-1/2 w-52 mt-3 border-2 border-[#ff6b9d]/60 rounded-2xl overflow-hidden shadow-[0_15px_40px_rgba(0,0,0,0.8)] z-[9999] transition-colors duration-500 py-1 ${theme === 'dark' ? 'bg-[#1a1a1a]' : 'bg-white'}`}
+                        >
+                          {(['EASY', 'MEDIUM', 'HARD'] as const).map((diff) => {
+                            const settings = diff === 'EASY' ? { grid: '4x3', mult: '1x' } : diff === 'MEDIUM' ? { grid: '4x4', mult: '1.5x' } : { grid: '6x4', mult: '2x' };
+                            return (
+                              <li
+                                key={diff}
+                                onClick={() => {
+                                  handleDifficultyChange(diff);
+                                  setIsDropdownOpen(false);
+                                }}
+                                className={`px-4 py-4 flex justify-center items-center cursor-pointer transition-all hover:bg-[#ff6b9d]/20 border-b border-white/5 last:border-0 relative group/item ${difficulty === diff ? 'bg-[#ff6b9d]/10' : ''}`}
+                              >
+                                <span className={`uppercase tracking-widest text-sm font-bold transition-transform group-hover/item:scale-110 ${difficulty === diff ? 'text-[#ff6b9d]' : (theme === 'dark' ? 'text-white' : 'text-black')}`}>
+                                  {diff} <span className="opacity-40 ml-2 font-normal italic text-[10px] tracking-normal">{settings.grid}</span>
+                                </span>
+                                {difficulty === diff && <span className="text-[#ff6b9d] text-xs absolute right-4">✓</span>}
+                              </li>
+                            );
+                          })}
+                        </motion.ul>
+                      )}
+                    </AnimatePresence>
+                  </div>
+
+                  <div className="w-[1px] h-6 bg-white/10 mx-4 shrink-0" />
+
+                  <div className="flex items-center gap-4">
+                    <button
+                      onClick={() => shuffleCards()}
+                      className="text-white/40 hover:text-[#ff6b9d] transition-colors p-1.5"
+                    >
+                      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.3" />
+                      </svg>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        const newMuted = !isMuted;
+                        setIsMuted(newMuted);
+                        saveMutePreference(newMuted);
+                      }}
+                      className="text-white/40 hover:text-[#ff6b9d] transition-colors p-1.5"
+                    >
+                      {isMuted ? <VolumeX size={18} /> : <Volume2 size={18} />}
+                    </button>
+                  </div>
                 </div>
-                <span className="text-[#ff6b9d]/50">|</span>
-                <div className="flex items-center gap-2 whitespace-nowrap">
-                  <span className="text-[#ff6b9d] text-[10px] uppercase font-bold">SCORE:</span>
-                  <span className={`text-base font-bold ${theme === 'dark' ? 'text-white' : 'text-black'}`}>{score}</span>
-                </div>
-                <span className="text-[#FFD700] text-[10px] uppercase font-bold">|</span>
-                <div className="flex items-center gap-2 whitespace-nowrap">
-                  <span className="text-[#FFD700] text-[10px] uppercase font-bold">COMBO:</span>
-                  <span className={`text-base font-bold ${theme === 'dark' ? 'text-white' : 'text-black'}`}>x{combo}</span>
-                </div>
+
+                {msg && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: 5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="absolute -bottom-5 left-0 right-0 text-center text-[#ff6b9d] text-[8px] font-black uppercase italic tracking-widest"
+                  >
+                    {msg}
+                  </motion.div>
+                )}
               </div>
             </div>
 
             <div className="relative w-full min-h-[400px] flex flex-col items-center justify-center">
               {!allMatched && !showLeaderboardScreen && (
                 <>
-                  <div className={`grid ${getDifficultySettings().cols} gap-3 w-full`}>
+                  <div className={`grid ${getDifficultySettings().cols} gap-3 w-full z-0 relative`}>
                     {cards.map(card => (
                       <div key={card.id} className={`relative aspect-square transition-all duration-500 ${card.matched ? 'opacity-0 scale-90 pointer-events-none' : 'opacity-100'}`}>
                         <div className={`w-full h-full cursor-pointer transition-all duration-500 [transform-style:preserve-3d] ${card === choiceOne || card === choiceTwo || card.matched ? '[transform:rotateY(180deg)]' : ''}`}
