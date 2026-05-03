@@ -156,35 +156,36 @@ export default function Home() {
       </AnimatePresence>
 
       {/* HERO SECTION */}
-      <header className="pt-[140px] pb-20 px-10 max-w-7xl mx-auto flex flex-col md:flex-row items-start justify-between gap-16">
-        <motion.div initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }} className="max-w-2xl text-center md:text-left">
-          <div className="mb-10">
-            <TransparentLogo src="/logo-hero.png" className="w-[130px] md:w-[200px] mx-auto md:mx-0" theme={theme} />
+      <header className="pt-[140px] pb-20 px-6 sm:px-10 max-w-7xl mx-auto flex flex-col md:flex-row items-center md:items-start justify-between gap-12 md:gap-16">
+        <motion.div initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }} className="max-w-2xl text-center md:text-left flex flex-col items-center md:items-start">
+          <div className="mb-8 md:mb-10">
+            <TransparentLogo src="/logo-hero.png" className="w-[120px] md:w-[200px]" theme={theme} />
           </div>
-          <div className="text-xl md:text-2xl font-black mb-6 uppercase tracking-tight text-[#ff6b9d]">
+          <div className="text-lg sm:text-xl md:text-2xl font-black mb-4 md:mb-6 uppercase tracking-tight text-[#ff6b9d]">
             3,333 hand drawn
           </div>
-          <p className="text-base md:text-lg opacity-80 font-medium max-w-lg mb-8 leading-relaxed">
+          <p className="text-sm sm:text-base md:text-lg opacity-80 font-medium max-w-lg mb-8 leading-relaxed">
             The elite NFT collective on Monad. Expanding boundaries through community, art, and decentralized power.
           </p>
-          <div className="flex flex-wrap items-center justify-center md:justify-start gap-4">
+          <div className="flex flex-col sm:flex-row items-center justify-center md:justify-start gap-4 w-full sm:w-auto">
             <motion.a 
               href="https://opensea.io/collection/the-10k-squad-350905768" 
               target="_blank" 
               whileHover={{ scale: 1.05, boxShadow: "0 0 30px rgba(255, 107, 157, 0.4)" }} 
               whileTap={{ scale: 0.95 }}
-              className={`flex items-center justify-center gap-3 px-6 py-3 rounded-xl font-black tracking-tight transition-all duration-300 shadow-2xl border ${
+              className={`flex items-center justify-center gap-3 px-6 py-3 rounded-xl font-black tracking-tight transition-all duration-300 shadow-2xl border w-full sm:w-auto ${
                 theme === 'dark' 
                   ? 'bg-[#1a1a1a] text-white border-white/10 hover:border-[#ff6b9d]/30' 
                   : 'bg-white text-black border-black/5 hover:border-black/20 shadow-black/5'
               }`}
             >
-              <img src="/opensea.png" alt="OpenSea" className="w-6 h-6 object-contain rounded-full" />
-              <span className="text-xl text-nowrap">Buy on OpenSea</span>
+              <img src="/opensea.png" alt="OpenSea" className="w-5 h-5 md:w-6 md:h-6 object-contain rounded-full" />
+              <span className="text-lg md:text-xl text-nowrap">Buy on OpenSea</span>
             </motion.a>
 
-            <motion.a 
-              href="https://x.com/the10ksquad" 
+            <div className="flex gap-4">
+              <motion.a 
+                href="https://x.com/the10ksquad" 
               target="_blank" 
               whileHover={{ scale: 1.1, translateY: -2, boxShadow: "0 0 20px rgba(255, 107, 157, 0.25)" }}
               whileTap={{ scale: 0.9 }}
@@ -212,13 +213,15 @@ export default function Home() {
                 <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
               </svg>
             </motion.a>
+            </div>
           </div>
         </motion.div>
         
         <motion.div 
           initial={{ opacity: 0, scale: 0.9, rotate: -2 }} 
           animate={{ opacity: 1, scale: 1, rotate: 0 }} 
-          className="w-full max-w-[450px] aspect-square rounded-[4rem] overflow-hidden border-8 border-current/10 shadow-[0_0_80px_rgba(155,89,182,0.2)]"
+          transition={{ delay: 0.2 }}
+          className="w-full max-w-[320px] sm:max-w-[450px] aspect-square rounded-[3rem] sm:rounded-[4rem] overflow-hidden border-4 sm:border-8 border-current/10 shadow-[0_0_80px_rgba(155,89,182,0.2)]"
         >
           <img 
             src="/hero-main.png" 
@@ -232,31 +235,29 @@ export default function Home() {
  
  
       {/* COLLECTION STATS */}
-      <section className="mt-12 mb-12 py-8 max-w-[1000px] mx-auto relative z-10 border-y border-white/5">
-        <div className="grid grid-cols-2 lg:grid-cols-4">
+      <section className="mt-8 sm:mt-12 mb-8 sm:mb-12 py-4 sm:py-8 max-w-[1000px] mx-auto relative z-10 border-y border-white/5 px-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-0">
           {stats.map((stat, i) => (
             <motion.div
               key={i}
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1 }}
-              transition={{ duration: 0.5 }}
+              transition={{ duration: 0.5, delay: i * 0.1 }}
               viewport={{ once: true }}
-              className={`flex flex-col items-center justify-center text-center py-4 sm:py-6 group transition-all duration-300 ${
-                i % 2 === 0 ? 'sm:border-r lg:border-r-0' : '' 
-              } ${
-                i !== stats.length - 1 ? 'lg:border-r border-[#333333]' : 'border-none'
-              }`}
+              className={`flex flex-col items-center justify-center text-center py-4 sm:py-6 group transition-all duration-300 px-2 ${
+                i % 2 === 0 ? 'border-r border-[#333333] md:border-r' : 'md:border-r border-[#333333]' 
+              } last:border-none`}
             >
-              <div className={`text-[1.8rem] font-bold tracking-tight mb-1 transition-all duration-500 ${
+              <div className={`text-xl sm:text-2xl md:text-[1.8rem] font-bold tracking-tight mb-1 transition-all duration-500 ${
                 isStatsLoading ? 'opacity-30 blur-[2px]' : 'opacity-100'
               } ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
                 {stat.value}
               </div>
-              <div className="text-[0.75rem] font-normal uppercase tracking-[0.1em] text-[#777777] group-hover:text-white transition-colors duration-300">
+              <div className="text-[10px] sm:text-[0.75rem] font-normal uppercase tracking-[0.1em] text-[#777777] group-hover:text-current transition-colors duration-300">
                 {stat.label}
               </div>
               {stat.sublabel && (
-                <div className="text-[0.7rem] font-normal text-[#777777] mt-0.5 text-center group-hover:text-white transition-colors duration-300">
+                <div className="text-[9px] sm:text-[0.7rem] font-normal text-[#777777] mt-0.5 text-center group-hover:text-current transition-colors duration-300 hidden sm:block">
                   {stat.sublabel}
                 </div>
               )}
@@ -272,12 +273,12 @@ export default function Home() {
       </section>
  
       {/* WHY HOLD UTILITY */}
-      <section id="utility" className="px-10 max-w-7xl mx-auto mb-40 scroll-mt-32">
-        <header className="text-center mb-16">
-          <h2 className="text-3xl md:text-5xl font-black uppercase italic tracking-tighter mb-4">WHY HOLD <span className="text-[#ff6b9d]">10K SQUAD</span></h2>
+      <section id="utility" className="px-6 sm:px-10 max-w-7xl mx-auto mb-24 sm:mb-40 scroll-mt-32">
+        <header className="text-center mb-12 sm:mb-16">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-black uppercase italic tracking-tighter mb-4 px-2">WHY HOLD <span className="text-[#ff6b9d]">10K SQUAD</span></h2>
           <div className="h-1.5 w-16 bg-[#ff6b9d] mx-auto rounded-full" />
         </header>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {[
             { label: "MAGMA", title: "15% Boost on Points", color: "#FF9F43" },
             { label: "NEVERLAND", title: "20% Boost on Pearls", color: "#B19CD9" },
@@ -316,14 +317,14 @@ export default function Home() {
       </section>
  
       {/* ABOUT */}
-      <section id="about" className="px-10 max-w-7xl mx-auto mb-40 scroll-mt-32">
-        <div className="flex flex-col-reverse lg:flex-row items-center gap-24">
-          <div className="flex-1 space-y-10">
-            <h2 className="text-4xl md:text-6xl font-black uppercase italic tracking-tighter leading-tight">
+      <section id="about" className="px-6 md:px-10 max-w-7xl mx-auto mb-24 sm:mb-40 scroll-mt-32">
+        <div className="flex flex-col-reverse lg:flex-row items-center gap-16 md:gap-24">
+          <div className="flex-1 space-y-6 md:space-y-10 text-center lg:text-left">
+            <h2 className="text-3xl sm:text-4xl md:text-6xl font-black uppercase italic tracking-tighter leading-tight">
               About <span className="text-[#9b59b6]">10k SQUAD</span>
             </h2>
-            <div className="h-1 w-20 bg-current rounded-full" />
-            <div className="space-y-8 text-xl font-medium opacity-60 leading-relaxed">
+            <div className="h-1 w-20 bg-current rounded-full mx-auto lg:ml-0" />
+            <div className="space-y-6 md:space-y-8 text-base sm:text-lg md:text-xl font-medium opacity-60 leading-relaxed max-w-2xl mx-auto lg:mx-0">
               <p>
                 The 10K Squad is a collection of 3,333 hand-drawn NFTs on Monad. With vibrant, unique artwork and a fun community vibe, we're building more than just PFPs.
               </p>
@@ -331,12 +332,11 @@ export default function Home() {
                 We're creating a hub of utilities, rewards, partnerships, and exclusive experiences for the entire Monad ecosystem. Made by the community, for the community.
               </p>
             </div>
- 
           </div>
-          <div className="flex-1 w-full max-w-[500px]">
+          <div className="flex-1 w-full max-w-[300px] sm:max-w-[500px]">
             <motion.div 
               whileHover={{ rotate: 3, scale: 1.05 }}
-              className="relative aspect-square rounded-[5rem] overflow-hidden border-[12px] border-current/5 shadow-3xl"
+              className="relative aspect-square rounded-[3rem] sm:rounded-[5rem] overflow-hidden border-8 sm:border-[12px] border-current/5 shadow-3xl mx-auto"
             >
               <img src="/about_new.png" alt="Vision" loading="lazy" decoding="async" className="w-full h-full object-cover" />
             </motion.div>
@@ -435,19 +435,19 @@ export default function Home() {
       </section>
 
       {/* FOOTER */}
-      <footer className="px-10 max-w-7xl mx-auto pb-20">
-        <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-24 p-16 rounded-[5rem] border border-current/10 ${theme === 'dark' ? 'bg-white/5' : 'bg-black/5'}`}>
-          <div className="space-y-10">
+      <footer className="px-4 sm:px-10 max-w-7xl mx-auto pb-12 sm:pb-20">
+        <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12 sm:gap-24 p-8 sm:p-16 rounded-[3rem] sm:rounded-[5rem] border border-current/10 ${theme === 'dark' ? 'bg-white/5' : 'bg-black/5'}`}>
+          <div className="space-y-6 sm:space-y-10 flex flex-col items-center md:items-start text-center md:text-left">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-full overflow-hidden border border-current/20">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full overflow-hidden border border-current/20">
                 <img src="/logo.png" alt="Logo" loading="lazy" decoding="async" className="w-full h-full object-cover" />
               </div>
-              <span className="text-3xl font-black uppercase italic tracking-tighter">10K SQUAD</span>
+              <span className="text-2xl sm:text-3xl font-black uppercase italic tracking-tighter text-nowrap">10K SQUAD</span>
             </div>
-            <p className="opacity-40 text-base font-medium leading-relaxed max-w-xs">
+            <p className="opacity-40 text-sm sm:text-base font-medium leading-relaxed max-w-xs">
               Hand-drawn excellence on Monad. Expanding boundaries through community and utility.
             </p>
-            <div className="flex items-center gap-6">
+            <div className="flex items-center gap-6 justify-center md:justify-start">
               <a href="https://opensea.io/collection/the-10k-squad-350905768" target="_blank" className="opacity-50 hover:opacity-100 transition-all hover:scale-110">
                 <img src="/opensea.png" alt="OpenSea" className="w-6 h-6 object-contain rounded-full" />
               </a>
@@ -462,18 +462,18 @@ export default function Home() {
             </div>
           </div>
  
-          <div className="grid grid-cols-2 gap-12 lg:ml-auto w-full">
-            <div className="space-y-8">
-              <h4 className="text-[10px] uppercase font-black tracking-[0.4em] opacity-30">The Squad</h4>
-              <nav className="flex flex-col gap-5 text-sm font-black italic opacity-60">
+          <div className="grid grid-cols-2 gap-8 sm:gap-12 lg:ml-auto w-full text-center md:text-left">
+            <div className="space-y-6 sm:space-y-8">
+              <h4 className="text-[8px] sm:text-[10px] uppercase font-black tracking-[0.4em] opacity-30">The Squad</h4>
+              <nav className="flex flex-col gap-3 sm:gap-5 text-xs sm:text-sm font-black italic opacity-60">
                 <a href="#gallery" className="hover:opacity-100 transition-opacity uppercase">Gallery</a>
                 <a href="#utility" className="hover:opacity-100 transition-opacity uppercase">Utility</a>
                 <a href="#about" className="hover:opacity-100 transition-opacity uppercase">About</a>
               </nav>
             </div>
-            <div className="space-y-8">
-              <h4 className="text-[10px] uppercase font-black tracking-[0.4em] opacity-30">Ecosystem</h4>
-              <nav className="flex flex-col gap-5 text-sm font-black italic opacity-60">
+            <div className="space-y-6 sm:space-y-8">
+              <h4 className="text-[8px] sm:text-[10px] uppercase font-black tracking-[0.4em] opacity-30">Ecosystem</h4>
+              <nav className="flex flex-col gap-3 sm:gap-5 text-xs sm:text-sm font-black italic opacity-60">
                 <a href="#" className="hover:opacity-100 transition-opacity uppercase">Monad</a>
                 <a href="#" className="hover:opacity-100 transition-opacity uppercase">Governance</a>
                 <a href="#" className="hover:opacity-100 transition-opacity uppercase">Partners</a>
@@ -481,9 +481,9 @@ export default function Home() {
             </div>
           </div>
  
-          <div className="col-span-full md:col-span-1 lg:col-span-1 flex flex-col justify-end lg:items-end">
-             <div className="text-[10px] font-black uppercase tracking-[0.5em] opacity-20 mb-3">2026 THE 10K SQUAD</div>
-             <div className="text-xs font-black opacity-30">ALL RIGHTS RESERVED.</div>
+          <div className="col-span-full md:col-span-1 lg:col-span-1 flex flex-col justify-end items-center md:items-end mt-4 sm:mt-0">
+             <div className="text-[8px] sm:text-[10px] font-black uppercase tracking-[0.5em] opacity-20 mb-3">2026 THE 10K SQUAD</div>
+             <div className="text-[10px] sm:text-xs font-black opacity-30">ALL RIGHTS RESERVED.</div>
           </div>
         </div>
       </footer>

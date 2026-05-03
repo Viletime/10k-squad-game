@@ -287,42 +287,42 @@ export default function Game() {
           <div className="flex flex-col items-center w-full">
             <div className="w-full flex flex-col md:flex-row items-stretch md:items-center justify-center mb-8 gap-4 px-2">
               {/* STATS PILL */}
-              <div className={`flex-[1.2] min-h-[70px] rounded-[2rem] border-2 border-white/10 flex items-center justify-between px-6 py-3 font-mono transition-all duration-500 shadow-xl ${theme === 'dark' ? 'bg-[#2a1d35]/60 backdrop-blur-xl' : 'bg-gray-100/80 backdrop-blur-xl'}`}>
-                <div className="flex flex-col items-center gap-0.5 flex-1 p-1">
-                  <span className="text-[#ff6b9d] text-[9px] uppercase font-black tracking-widest opacity-80">SCORE</span>
-                  <span className={`text-lg sm:text-xl font-black ${theme === 'dark' ? 'text-white' : 'text-black font-bold'}`}>{score}</span>
+              <div className={`flex-[1.2] min-h-[70px] rounded-[2rem] border-2 border-white/10 flex items-center justify-between px-4 sm:px-6 py-3 font-mono transition-all duration-500 shadow-xl flex-wrap sm:flex-nowrap gap-2 sm:gap-0 ${theme === 'dark' ? 'bg-[#2a1d35]/60 backdrop-blur-xl' : 'bg-gray-100/80 backdrop-blur-xl'}`}>
+                <div className="flex flex-col items-center gap-0.5 flex-1 p-1 min-w-[70px]">
+                  <span className="text-[#ff6b9d] text-[8px] sm:text-[9px] uppercase font-black tracking-widest opacity-80">SCORE</span>
+                  <span className={`text-base sm:text-lg lg:text-xl font-black ${theme === 'dark' ? 'text-white' : 'text-black font-bold'}`}>{score}</span>
                 </div>
-                <div className="w-[1px] h-8 bg-white/10 shrink-0" />
-                <div className="flex flex-col items-center gap-0.5 flex-1 p-1">
-                  <span className="text-[#FFD700] text-[9px] uppercase font-black tracking-widest opacity-80">COMBO</span>
-                  <span className={`text-lg sm:text-xl font-black ${theme === 'dark' ? 'text-white' : 'text-black font-bold'}`}>x{combo}</span>
+                <div className="w-[1px] h-6 sm:h-8 bg-white/10 shrink-0 hidden sm:block" />
+                <div className="flex flex-col items-center gap-0.5 flex-1 p-1 min-w-[70px]">
+                  <span className="text-[#FFD700] text-[8px] sm:text-[9px] uppercase font-black tracking-widest opacity-80">COMBO</span>
+                  <span className={`text-base sm:text-lg lg:text-xl font-black ${theme === 'dark' ? 'text-white' : 'text-black font-bold'}`}>x{combo}</span>
                 </div>
-                <div className="w-[1px] h-8 bg-white/10 shrink-0" />
-                <div className="flex flex-col items-center gap-0.5 flex-1 p-1">
-                  <span className="text-[#ff6b9d] text-[9px] uppercase font-black tracking-widest opacity-80">TIME</span>
-                  <span className={`text-lg sm:text-xl font-black ${theme === 'dark' ? 'text-white' : 'text-black font-bold'}`}>{formatTime(time)}</span>
+                <div className="w-[1px] h-6 sm:h-8 bg-white/10 shrink-0 hidden sm:block" />
+                <div className="flex flex-col items-center gap-0.5 flex-1 p-1 min-w-[70px]">
+                  <span className="text-[#ff6b9d] text-[8px] sm:text-[9px] uppercase font-black tracking-widest opacity-80">TIME</span>
+                  <span className={`text-base sm:text-lg lg:text-xl font-black ${theme === 'dark' ? 'text-white' : 'text-black font-bold'}`}>{formatTime(time)}</span>
                 </div>
-                <div className="w-[1px] h-8 bg-white/10 shrink-0" />
-                <div className="flex flex-col items-center gap-0.5 flex-1 p-1">
-                  <span className="text-[#ff6b9d] text-[9px] uppercase font-black tracking-widest opacity-80">MOVES</span>
-                  <span className={`text-lg sm:text-xl font-black ${theme === 'dark' ? 'text-white' : 'text-black font-bold'}`}>{turns}</span>
+                <div className="w-[1px] h-6 sm:h-8 bg-white/10 shrink-0 hidden sm:block" />
+                <div className="flex flex-col items-center gap-0.5 flex-1 p-1 min-w-[70px]">
+                  <span className="text-[#ff6b9d] text-[8px] sm:text-[9px] uppercase font-black tracking-widest opacity-80">MOVES</span>
+                  <span className={`text-base sm:text-lg lg:text-xl font-black ${theme === 'dark' ? 'text-white' : 'text-black font-bold'}`}>{turns}</span>
                 </div>
               </div>
 
               {/* CONTROLS PILL */}
               <div className={`flex-1 min-h-[70px] rounded-[2rem] border-2 border-white/10 relative transition-all duration-500 shadow-lg z-[40] ${theme === 'dark' ? 'bg-[#2a1d35]/40 backdrop-blur-sm' : 'bg-gray-100/60 backdrop-blur-sm'}`}>
-                <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 px-2 bg-transparent z-10">
+                <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 px-2 bg-transparent z-10 w-full text-center">
                   <span className="text-[#ff6b9d] text-[8px] font-black uppercase tracking-[0.2em] opacity-70">DIFFICULTY</span>
                 </div>
 
-                <div className="flex items-center h-full px-6 py-2">
+                <div className="flex items-center h-full px-4 sm:px-6 py-2">
                   <div className="relative flex-1">
                     <button
                       onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                      className={`w-full max-w-[200px] h-11 flex items-center justify-center gap-2.5 mx-auto transition-all hover:opacity-80 active:scale-95`}
+                      className={`w-full max-w-[200px] h-11 flex items-center justify-center gap-2 mx-auto transition-all hover:opacity-80 active:scale-95`}
                     >
-                      <span className={`text-sm sm:text-base font-bold tracking-tight uppercase ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
-                        {difficulty} <span className="opacity-40 text-xs ml-1 tracking-normal font-medium">· {getDifficultySettings().grid}</span>
+                      <span className={`text-[12px] sm:text-sm md:text-base font-bold tracking-tight uppercase ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
+                        {difficulty} <span className="opacity-40 text-[10px] ml-1 tracking-normal font-medium">· {getDifficultySettings().grid}</span>
                       </span>
                       <span className={`text-[#ff6b9d] text-[10px] transition-transform duration-300 ${isDropdownOpen ? 'rotate-180' : ''}`}>▼</span>
                     </button>
@@ -398,7 +398,7 @@ export default function Game() {
             <div className="relative w-full min-h-[400px] flex flex-col items-center justify-center">
               {!allMatched && !showLeaderboardScreen && (
                 <>
-                  <div className={`grid ${getDifficultySettings().cols} gap-3 w-full z-0 relative`}>
+                  <div className={`grid ${getDifficultySettings().cols} gap-2 sm:gap-3 w-full z-0 relative px-2 sm:px-0`}>
                     {cards.map(card => (
                       <div key={card.id} className={`relative aspect-square transition-all duration-500 ${card.matched ? 'opacity-0 scale-90 pointer-events-none' : 'opacity-100'}`}>
                         <div className={`w-full h-full cursor-pointer transition-all duration-500 [transform-style:preserve-3d] ${card === choiceOne || card === choiceTwo || card.matched ? '[transform:rotateY(180deg)]' : ''}`}
