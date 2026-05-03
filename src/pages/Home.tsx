@@ -266,7 +266,7 @@ export default function Home() {
       </section>
 
       {/* GALLERY */}
-      <section id="gallery" className="scroll-mt-32 mb-40">
+      <section id="gallery" className="scroll-mt-32 mb-40 flex flex-col -space-y-20 -mt-10">
         <Marquee items={imagesRow1} theme={theme} />
         <Marquee items={imagesRow2} reverse={true} theme={theme} />
       </section>
@@ -487,7 +487,7 @@ export default function Home() {
           </div>
         </div>
       </footer>
- 
+
       {/* BG DECOR */}
       <div className="fixed inset-0 z-[-1] opacity-20 pointer-events-none overflow-hidden">
         <div className={`absolute top-[-20%] right-[-10%] w-[70%] aspect-square rounded-full blur-[150px] ${theme === 'dark' ? 'bg-purple-900/10' : 'bg-purple-100/20'}`} />

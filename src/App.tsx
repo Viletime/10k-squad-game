@@ -124,19 +124,30 @@ export const TransparentLogo = ({ src, className, theme }: { src: string, classN
 
 export const Marquee = ({ items, reverse = false, theme }: { items: string[], reverse?: boolean, theme: 'light' | 'dark' }) => {
   return (
-    <div className="relative flex overflow-hidden w-full py-2 group/marquee">
-      <div className={`absolute left-0 top-0 bottom-0 w-32 z-20 pointer-events-none bg-gradient-to-r to-transparent ${theme === 'dark' ? 'from-black' : 'from-white'}`} />
-      <div className={`absolute right-0 top-0 bottom-0 w-32 z-20 pointer-events-none bg-gradient-to-l to-transparent ${theme === 'dark' ? 'from-black' : 'from-white'}`} />
+    <div 
+      className="relative flex overflow-hidden w-full py-20 group/marquee"
+      style={{
+        maskImage: 'linear-gradient(to right, transparent, black 15%, black 85%, transparent)',
+        WebkitMaskImage: 'linear-gradient(to right, transparent, black 15%, black 85%, transparent)'
+      }}
+    >
       <div className={`flex ${reverse ? 'animate-marquee-reverse' : 'animate-marquee'} will-change-transform`} style={{ width: 'max-content' }}>
         {[...items, ...items].map((src, i) => (
           <motion.div
             key={i}
-            whileHover={{ scale: 1.1, zIndex: 50 }}
-            transition={{ type: "spring", stiffness: 300, damping: 20 }}
-            className={`flex-shrink-0 w-[240px] h-[240px] rounded-[2.5rem] overflow-hidden m-2 relative shadow-2xl cursor-pointer transition-all duration-300 
-              ${theme === 'dark' ? 'bg-white/5 border border-white/20' : 'bg-black/5 border border-black/20'}`}
+            whileHover={{ 
+              scale: 1.1, 
+              zIndex: 50,
+              boxShadow: "0 0 40px rgba(155, 89, 182, 0.4), 0 0 15px rgba(155, 89, 182, 0.2)",
+              borderColor: "rgba(155, 89, 182, 0.8)"
+            }}
+            transition={{ type: "spring", stiffness: 400, damping: 25 }}
+            className={`flex-shrink-0 w-[240px] h-[240px] rounded-[3.5rem] overflow-hidden mx-2 relative cursor-pointer border-2 transition-all duration-300
+              ${theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-black/5 border-black/10'}`}
           >
-            <img 
+            <motion.img 
+              whileHover={{ scale: 1.05 }}
+              transition={{ duration: 0.6 }}
               src={src} 
               alt="NFT" 
               loading="lazy" 
