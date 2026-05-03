@@ -45,6 +45,7 @@ export default function Home() {
     totalVolume: "777K",
     volumeUsd: "$23K+"
   });
+  const [isStatsLoading, setIsStatsLoading] = useState(true);
 
   useEffect(() => {
     async function fetchStats() {
@@ -61,8 +62,10 @@ export default function Home() {
             volumeUsd: data.volumeUsd || "$23K+"
           });
         }
+        setIsStatsLoading(false);
       } catch (err) {
         console.error("Failed to fetch NFT stats:", err);
+        setIsStatsLoading(false);
       }
     }
     fetchStats();
@@ -244,7 +247,9 @@ export default function Home() {
                 i !== stats.length - 1 ? 'lg:border-r border-[#333333]' : 'border-none'
               }`}
             >
-              <div className={`text-[1.8rem] font-bold tracking-tight mb-1 ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
+              <div className={`text-[1.8rem] font-bold tracking-tight mb-1 transition-all duration-500 ${
+                isStatsLoading ? 'opacity-30 blur-[2px]' : 'opacity-100'
+              } ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
                 {stat.value}
               </div>
               <div className="text-[0.75rem] font-normal uppercase tracking-[0.1em] text-[#777777] group-hover:text-white transition-colors duration-300">
