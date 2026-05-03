@@ -266,11 +266,7 @@ export default function Game() {
           <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
           <span className="text-xl font-black uppercase italic tracking-tighter">BACK TO SQUAD</span>
         </Link>
-        <div className="flex items-center gap-6">
-          <div className="px-4 py-1.5 rounded-full bg-[#ff6b9d] text-white text-xs font-black tracking-widest shadow-lg">
-            GAME CENTER
-          </div>
-        </div>
+        <div className="flex items-center gap-6" />
       </nav>
 
       <main className="pt-28 pb-20 px-6 max-w-6xl mx-auto flex flex-col items-center text-center">
