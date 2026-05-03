@@ -385,11 +385,11 @@ export default function Game() {
                         >
                           {/* Front of card (SQUAD) */}
                           <div className="absolute inset-0 [backface-visibility:hidden] rounded-xl border-2 border-current/10 bg-current/5 flex items-center justify-center [transform:rotateY(180deg)] overflow-hidden">
-                              <img src={card.src} alt="card front" className="w-full h-full object-cover" />
+                              <img src={card.src} alt="card front" loading="lazy" decoding="async" className="w-full h-full object-cover" />
                           </div>
                           {/* Back of card */}
                           <div className="absolute inset-0 [backface-visibility:hidden] rounded-xl border-2 border-current/10 bg-[#0f0f0f] flex items-center justify-center overflow-hidden">
-                              <img src="/card-back-owl.png" alt="card back" className="w-full h-full object-cover" />
+                              <img src="/card-back-owl.png" alt="card back" loading="lazy" decoding="async" className="w-full h-full object-cover" />
                           </div>
                         </div>
                       </div>

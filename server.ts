@@ -18,18 +18,18 @@ async function startServer() {
 
   // API route for NFT stats (Server-side proxy to OpenSea)
   app.get("/api/nft-stats", async (req, res) => {
-    // SEMPRE RETORNAR DADOS MANUAIS CONFORME SOLICITADO PELO USUÁRIO
-    // "vamo fazer manualmente"
+    // Dados manuais conforme solicitado pelo usuário como fallback
     const manualStats = {
       totalSupply: 3333,
-      floorPrice: 5.25,
-      holders: 2850,
-      totalVolume: 650000,
+      floorPrice: 1917.15,
+      holders: 1100,
+      totalVolume: 777000,
+      volumeUsd: "$23K+",
       _isMock: true,
-      _note: "Manual updates as requested"
+      _note: "API Key missing or fetch failed"
     };
 
-    const apiKey = process.env.OPENSEA_API_KEY || process.env.VITE_OPENSEA_API_KEY;
+    const apiKey = process.env.OPENSEA_API_KEY;
     const collectionSlug = 'the-10k-squad-350905768';
 
     if (!apiKey) {
@@ -37,8 +37,6 @@ async function startServer() {
     }
 
     try {
-      // Se tiver API Key, ainda tentamos buscar para ver se há atualizações automáticas,
-      // mas usaremos os valores manuais como BASE se a API falhar ou retornar zeros.
       console.log(`Fetching stats for slug: ${collectionSlug} using API Key...`);
       const response = await fetch(`https://api.opensea.io/api/v2/collections/${collectionSlug}/stats`, {
         headers: { 
@@ -48,18 +46,21 @@ async function startServer() {
       });
       
       if (!response.ok) {
-        return res.json(manualStats);
+        throw new Error(`OpenSea API responded with ${response.status}`);
       }
       
       const data = await response.json();
-      const total = data.total || data || {};
+      console.log("OpenSea API Data received:", JSON.stringify(data));
       
-      // Mesclar dados da API com os manuais (priorizando manuais se API retornar 0)
+      const total = data.total || {};
+      
+      // OpenSea V2 stats are under the 'total' key
       res.json({
-        totalSupply: data.total_supply || total.total_supply || manualStats.totalSupply,
-        floorPrice: total.floor_price || data.floor_price || manualStats.floorPrice,
-        holders: total.num_owners || data.num_owners || total.owners || manualStats.holders,
-        totalVolume: manualStats.totalVolume, // Volume fixo em 650k conforme solicitado
+        totalSupply: data.total_supply || manualStats.totalSupply,
+        floorPrice: total.floor_price || manualStats.floorPrice,
+        holders: total.num_owners || manualStats.holders,
+        totalVolume: manualStats.totalVolume, // Mantido fixo em 777k como solicitado
+        volumeUsd: manualStats.volumeUsd, 
         _isMock: false
       });
     } catch (error) {

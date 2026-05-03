@@ -38,11 +38,44 @@ export default function Home() {
   ];
 
   /* Stats: update weekly */
+  const [nftStats, setNftStats] = useState({
+    totalSupply: "3,333",
+    holders: "1,100+",
+    floorPrice: "1,917.15",
+    totalVolume: "777K",
+    volumeUsd: "$23K+"
+  });
+
+  useEffect(() => {
+    async function fetchStats() {
+      try {
+        const response = await fetch('/api/nft-stats');
+        if (response.ok) {
+          const data = await response.json();
+          setNftStats({
+            totalSupply: data.totalSupply?.toLocaleString() || "3,333",
+            holders: data.holders?.toLocaleString() || "1,100+",
+            floorPrice: typeof data.floorPrice === 'number' ? data.floorPrice.toFixed(2) : "1,917.15",
+            totalVolume: typeof data.totalVolume === 'number' ? 
+              (data.totalVolume > 1000 ? (data.totalVolume / 1000).toFixed(0) + "K" : data.totalVolume.toString()) : "777K",
+            volumeUsd: data.volumeUsd || "$23K+"
+          });
+        }
+      } catch (err) {
+        console.error("Failed to fetch NFT stats:", err);
+      }
+    }
+    fetchStats();
+    // Refresh every 5 minutes
+    const interval = setInterval(fetchStats, 5 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, []);
+
   const stats = [
-    { value: "3,333", label: "NFTs" },
-    { value: "1,100+", label: "Holders" },
-    { value: "1,917.15 MON", label: "Floor" },
-    { value: "777K MON", label: "Total Volume", sublabel: "~$23K+ USD" },
+    { value: nftStats.totalSupply, label: "NFTs" },
+    { value: nftStats.holders, label: "Holders" },
+    { value: `${nftStats.floorPrice} MON`, label: "Floor" },
+    { value: `${nftStats.totalVolume} MON`, label: "Total Volume", sublabel: `~${nftStats.volumeUsd} USD` },
   ];
 
   useEffect(() => {
@@ -59,7 +92,7 @@ export default function Home() {
         {/* LEFT PART: LOGO */}
         <div className="flex-1 flex items-center gap-3">
           <div className="w-10 h-10 rounded-full overflow-hidden border border-white/20">
-            <img src="/logo.png" alt="Logo" className="w-full h-full object-cover" />
+            <img src="/logo.png" alt="Logo" loading="eager" className="w-full h-full object-cover" />
           </div>
           <span className="text-xl font-black uppercase italic tracking-tighter">10K SQUAD</span>
         </div>
@@ -120,7 +153,7 @@ export default function Home() {
       </AnimatePresence>
 
       {/* HERO SECTION */}
-      <header className="pt-[100px] pb-20 px-10 max-w-7xl mx-auto flex flex-col md:flex-row items-start justify-between gap-16">
+      <header className="pt-[140px] pb-20 px-10 max-w-7xl mx-auto flex flex-col md:flex-row items-start justify-between gap-16">
         <motion.div initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }} className="max-w-2xl text-center md:text-left">
           <div className="mb-10">
             <TransparentLogo src="/logo-hero.png" className="w-[130px] md:w-[200px] mx-auto md:mx-0" theme={theme} />
@@ -184,7 +217,13 @@ export default function Home() {
           animate={{ opacity: 1, scale: 1, rotate: 0 }} 
           className="w-full max-w-[450px] aspect-square rounded-[4rem] overflow-hidden border-8 border-current/10 shadow-[0_0_80px_rgba(155,89,182,0.2)]"
         >
-          <img src="/hero-main.png" alt="Squad Featured" className="w-full h-full object-cover" />
+          <img 
+            src="/hero-main.png" 
+            alt="Squad Featured" 
+            loading="eager"
+            fetchPriority="high"
+            className="w-full h-full object-cover" 
+          />
         </motion.div>
       </header>
  
@@ -294,7 +333,7 @@ export default function Home() {
               whileHover={{ rotate: 3, scale: 1.05 }}
               className="relative aspect-square rounded-[5rem] overflow-hidden border-[12px] border-current/5 shadow-3xl"
             >
-              <img src="/about_new.png" alt="Vision" className="w-full h-full object-cover" />
+              <img src="/about_new.png" alt="Vision" loading="lazy" decoding="async" className="w-full h-full object-cover" />
             </motion.div>
           </div>
         </div>
@@ -396,7 +435,7 @@ export default function Home() {
           <div className="space-y-10">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-full overflow-hidden border border-current/20">
-                <img src="/logo.png" alt="Logo" className="w-full h-full object-cover" />
+                <img src="/logo.png" alt="Logo" loading="lazy" decoding="async" className="w-full h-full object-cover" />
               </div>
               <span className="text-3xl font-black uppercase italic tracking-tighter">10K SQUAD</span>
             </div>
