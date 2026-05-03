@@ -125,7 +125,7 @@ export const TransparentLogo = ({ src, className, theme }: { src: string, classN
 export const Marquee = ({ items, reverse = false, theme }: { items: string[], reverse?: boolean, theme: 'light' | 'dark' }) => {
   return (
     <div 
-      className="relative flex overflow-hidden w-full py-20 group/marquee"
+      className="relative flex overflow-hidden w-full py-12 group/marquee"
       style={{
         maskImage: 'linear-gradient(to right, transparent, black 15%, black 85%, transparent)',
         WebkitMaskImage: 'linear-gradient(to right, transparent, black 15%, black 85%, transparent)'
