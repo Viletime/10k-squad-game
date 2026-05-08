@@ -26,7 +26,16 @@ export default function Game() {
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState('');
 
+  const [isScrolled, setIsScrolled] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
   const [difficulty, setDifficulty] = useState<'EASY' | 'MEDIUM' | 'HARD'>('MEDIUM');
   const [msg, setMsg] = useState('');
   const [leaderboard, setLeaderboard] = useState<{rank: number, player: string, time: number, diff: string}[]>([]);
@@ -261,12 +270,25 @@ export default function Game() {
       <FloatingParticles />
       
       {/* NAV */}
-      <nav className="fixed top-0 left-0 right-0 z-50 px-6 md:px-10 py-4 backdrop-blur-md bg-black/60 border-b border-white/10 flex justify-between items-center text-white">
-        <Link to="/" className="flex items-center gap-3 group">
+      <nav className={`fixed top-0 left-0 right-0 z-50 px-6 md:px-10 py-4 transition-all duration-300 border-b flex justify-between items-center ${
+        isScrolled 
+          ? `backdrop-blur-xl ${theme === 'dark' ? 'bg-black/80 border-[#ff6b9d]/20 shadow-[0_4px_20px_rgba(0,0,0,0.5)] text-white' : 'bg-white/80 border-black/10 shadow-lg text-black'}`
+          : `bg-transparent border-transparent ${theme === 'dark' ? 'text-white' : 'text-black'}`
+      }`}>
+        <Link to="/" className="flex items-center gap-3 group px-4 py-2 rounded-xl transition-all hover:bg-white/10 hover:shadow-lg active:scale-95">
           <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
           <span className="text-xl font-black uppercase italic tracking-tighter">BACK TO SQUAD</span>
         </Link>
-        <div className="flex items-center gap-6" />
+        <div className={`flex items-center gap-6 ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
+          <motion.button 
+            whileHover={{ scale: 1.2, rotate: 15 }} 
+            whileTap={{ scale: 0.9 }}
+            onClick={() => setTheme(prev => prev === 'light' ? 'dark' : 'light')} 
+            className="opacity-50 hover:opacity-100 hover:text-[#ff6b9d] transition-all duration-300 cursor-pointer p-2"
+          >
+            {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
+          </motion.button>
+        </div>
       </nav>
 
       <main className="pt-28 pb-20 px-6 max-w-6xl mx-auto flex flex-col items-center text-center">
@@ -361,16 +383,20 @@ export default function Game() {
                   <div className="w-[1px] h-6 bg-white/10 mx-4 shrink-0" />
 
                   <div className="flex items-center gap-4">
-                    <button
+                    <motion.button
+                      whileHover={{ scale: 1.2, rotate: 180 }}
+                      whileTap={{ scale: 0.9 }}
                       onClick={() => shuffleCards()}
                       className="text-white/40 hover:text-[#ff6b9d] transition-colors p-1.5"
                     >
                       <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.3" />
                       </svg>
-                    </button>
+                    </motion.button>
 
-                    <button
+                    <motion.button
+                      whileHover={{ scale: 1.2 }}
+                      whileTap={{ scale: 0.9 }}
                       onClick={() => {
                         const newMuted = !isMuted;
                         setIsMuted(newMuted);
@@ -379,7 +405,7 @@ export default function Game() {
                       className="text-white/40 hover:text-[#ff6b9d] transition-colors p-1.5"
                     >
                       {isMuted ? <VolumeX size={18} /> : <Volume2 size={18} />}
-                    </button>
+                    </motion.button>
                   </div>
                 </div>
 
@@ -400,7 +426,12 @@ export default function Game() {
                 <>
                   <div className={`grid ${getDifficultySettings().cols} gap-2 sm:gap-3 w-full z-0 relative px-2 sm:px-0`}>
                     {cards.map(card => (
-                      <div key={card.id} className={`relative aspect-square transition-all duration-500 ${card.matched ? 'opacity-0 scale-90 pointer-events-none' : 'opacity-100'}`}>
+                      <motion.div 
+                        key={card.id} 
+                        whileHover={{ scale: 1.05, y: -5 }}
+                        whileTap={{ scale: 0.95 }}
+                        className={`relative aspect-square transition-all duration-500 ${card.matched ? 'opacity-0 scale-90 pointer-events-none' : 'opacity-100'}`}
+                      >
                         <div className={`w-full h-full cursor-pointer transition-all duration-500 [transform-style:preserve-3d] ${card === choiceOne || card === choiceTwo || card.matched ? '[transform:rotateY(180deg)]' : ''}`}
                           onClick={() => !disabled && !card.matched && card !== choiceOne && handleChoice(card)}
                         >
@@ -413,18 +444,19 @@ export default function Game() {
                               <img src="/card-back-owl.png" alt="card back" loading="lazy" decoding="async" className="w-full h-full object-cover" />
                           </div>
                         </div>
-                      </div>
+                      </motion.div>
                     ))}
                   </div>
 
-                  {/* Botões */}
                   <div className="mt-8 flex gap-4 w-full justify-center">
-                    <button 
+                    <motion.button 
+                      whileHover={{ scale: 1.05, boxShadow: "0 0 20px rgba(255, 107, 157, 0.4)" }}
+                      whileTap={{ scale: 0.95 }}
                       onClick={() => shuffleCards()}
-                      className="px-8 py-3 rounded-[15px] border border-[#ff6b9d] text-[#ff6b9d] font-black uppercase text-xs tracking-widest hover:bg-[#ff6b9d] hover:text-white transition-all"
+                      className="px-8 py-3 rounded-[15px] border border-[#ff6b9d] text-[#ff6b9d] font-black uppercase text-xs tracking-widest hover:bg-[#ff6b9d] hover:text-white transition-all duration-300"
                     >
                       Reset Game
-                    </button>
+                    </motion.button>
                   </div>
                 </>
               )}
@@ -476,25 +508,29 @@ export default function Game() {
                   </div>
 
                   <div className="flex flex-col gap-3 w-full">
-                    <button 
+                    <motion.button 
+                      whileHover={!isSaving ? { scale: 1.05, boxShadow: "0 0 25px rgba(255, 107, 157, 0.5)" } : {}}
+                      whileTap={!isSaving ? { scale: 0.95 } : {}}
                       onClick={handleSaveScore}
                       disabled={isSaving}
                       className={`flex-1 py-4 bg-[#ff6b9d] text-white rounded-[15px] font-black uppercase text-xs tracking-widest transition-all shadow-xl ${isSaving ? 'opacity-50 cursor-not-allowed' : 'hover:scale-[1.02]'}`}
                     >
                       {isSaving ? 'Saving...' : 'Save Score'}
-                    </button>
+                    </motion.button>
                     {saveError && (
                       <p className="text-red-500 text-[10px] font-bold text-center uppercase tracking-widest">{saveError}</p>
                     )}
-                    <button 
+                    <motion.button 
+                      whileHover={{ scale: 1.05, backgroundColor: theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)' }}
+                      whileTap={{ scale: 0.95 }}
                       onClick={() => shuffleCards()}
                       disabled={isSaving}
-                      className={`flex-1 py-4 border rounded-[15px] font-black uppercase text-xs tracking-widest hover:scale-[1.02] transition-transform ${
-                        theme === 'dark' ? 'border-white/10 text-white hover:bg-white/5' : 'border-black/10 text-black hover:bg-black/5'
+                      className={`flex-1 py-4 border rounded-[15px] font-black uppercase text-xs tracking-widest transition-all ${
+                        theme === 'dark' ? 'border-white/10 text-white' : 'border-black/10 text-black'
                       }`}
                     >
                       New Game
-                    </button>
+                    </motion.button>
                   </div>
                 </motion.div>
               )}
@@ -537,20 +573,24 @@ export default function Game() {
                   </div>
 
                   <div className="flex gap-3 w-full mt-4">
-                    <button 
+                    <motion.button 
+                      whileHover={{ scale: 1.05, bg: "#ff6b9d", boxShadow: "0 0 25px rgba(255, 107, 157, 0.5)" }}
+                      whileTap={{ scale: 0.95 }}
                       onClick={() => shuffleCards()}
-                      className="flex-1 py-4 bg-[#ff6b9d] text-white rounded-[15px] font-black uppercase text-xs tracking-widest hover:scale-[1.02] transition-transform shadow-xl"
+                      className="flex-1 py-4 bg-[#ff6b9d] text-white rounded-[15px] font-black uppercase text-xs tracking-widest transition-all shadow-xl"
                     >
                       New Game
-                    </button>
-                    <Link 
-                      to="/"
-                      className={`flex-1 flex items-center justify-center py-4 border rounded-[15px] font-black uppercase text-xs tracking-widest hover:scale-[1.02] transition-transform ${
-                        theme === 'dark' ? 'border-white/10 text-white hover:bg-white/5' : 'border-black/10 text-black hover:bg-black/5'
-                      }`}
-                    >
-                      Back Home
-                    </Link>
+                    </motion.button>
+                    <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="flex-1">
+                      <Link 
+                        to="/"
+                        className={`w-full flex items-center justify-center py-4 border rounded-[15px] font-black uppercase text-xs tracking-widest transition-all ${
+                          theme === 'dark' ? 'border-white/10 text-white hover:bg-white/5' : 'border-black/10 text-black hover:bg-black/5'
+                        }`}
+                      >
+                        Back Home
+                      </Link>
+                    </motion.div>
                   </div>
                 </motion.div>
               )}

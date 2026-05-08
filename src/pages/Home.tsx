@@ -7,7 +7,16 @@ import { FloatingParticles, TransparentLogo, Marquee } from '../App';
 export default function Home() {
   const [theme, setTheme] = useState<'light' | 'dark'>('dark');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
   const toggleTheme = () => setTheme(prev => prev === 'light' ? 'dark' : 'light');
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
   const closeMenu = () => setIsMenuOpen(false);
@@ -91,7 +100,11 @@ export default function Home() {
       <FloatingParticles />
       
       {/* HEADER */}
-      <nav className="fixed top-0 left-0 right-0 z-50 px-6 md:px-10 py-4 backdrop-blur-md bg-black/60 border-b border-white/10 flex items-center text-white">
+      <nav className={`fixed top-0 left-0 right-0 z-50 px-6 md:px-10 py-4 transition-all duration-300 border-b flex items-center ${
+        isScrolled 
+          ? `backdrop-blur-xl ${theme === 'dark' ? 'bg-black/80 border-[#ff6b9d]/20 shadow-[0_4px_20px_rgba(0,0,0,0.5)] text-white' : 'bg-white/80 border-black/10 shadow-lg text-black'}`
+          : `bg-transparent border-transparent ${theme === 'dark' ? 'text-white' : 'text-black'}`
+      }`}>
         {/* LEFT PART: LOGO */}
         <div className="flex-1 flex items-center gap-3">
           <div className="w-10 h-10 rounded-full overflow-hidden border border-white/20">
@@ -101,26 +114,33 @@ export default function Home() {
         </div>
 
         {/* CENTER PART: LINKS */}
-        <div className="hidden md:flex items-center justify-center gap-8 text-[11px] uppercase font-bold tracking-[0.2em] opacity-50">
-          <a href="#gallery" className="hover:text-white transition-colors">Gallery</a>
-          <a href="#utility" className="hover:text-white transition-colors">Utility</a>
-          <a href="#about" className="hover:text-white transition-colors">About</a>
-          <Link to="/game" className="hover:text-white transition-colors">Game</Link>
+        <div className="hidden md:flex items-center justify-center gap-8 text-[11px] uppercase font-bold tracking-[0.2em]">
+          <a href="#gallery" className="opacity-50 hover:opacity-100 hover:text-[#ff6b9d] transition-all duration-300 hover:scale-110 active:scale-95">Gallery</a>
+          <a href="#utility" className="opacity-50 hover:opacity-100 hover:text-[#ff6b9d] transition-all duration-300 hover:scale-110 active:scale-95">Utility</a>
+          <a href="#about" className="opacity-50 hover:opacity-100 hover:text-[#ff6b9d] transition-all duration-300 hover:scale-110 active:scale-95">About</a>
+          <Link to="/game" className="opacity-50 hover:opacity-100 hover:text-[#ff6b9d] transition-all duration-300 hover:scale-110 active:scale-95">Game</Link>
         </div>
 
         {/* RIGHT PART: TOGGLE */}
-        <div className="flex-1 flex items-center justify-end gap-3 md:gap-6 text-white">
-          <button onClick={toggleTheme} className="opacity-50 hover:text-white transition-colors cursor-pointer">
+        <div className={`flex-1 flex items-center justify-end gap-3 md:gap-6 ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
+          <motion.button 
+            whileHover={{ scale: 1.2, rotate: 15 }} 
+            whileTap={{ scale: 0.9 }}
+            onClick={toggleTheme} 
+            className="opacity-50 hover:opacity-100 hover:text-[#ff6b9d] transition-all duration-300 cursor-pointer p-2"
+          >
             {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
-          </button>
+          </motion.button>
           
           {/* MOBILE MENU BUTTON */}
-          <button 
+          <motion.button 
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
             onClick={toggleMenu} 
-            className="md:hidden opacity-50 hover:text-white transition-colors cursor-pointer p-2"
+            className="md:hidden opacity-50 hover:opacity-100 hover:text-[#ff6b9d] transition-all duration-300 cursor-pointer p-2"
           >
             {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
+          </motion.button>
         </div>
       </nav>
 
@@ -134,22 +154,36 @@ export default function Home() {
             className="fixed inset-0 z-[40] pt-[80px] bg-black flex flex-col items-center justify-start gap-8 p-10 text-white md:hidden"
           >
             <nav className="flex flex-col items-center gap-8 text-lg uppercase font-black italic tracking-widest">
-              <a href="#gallery" onClick={closeMenu} className="hover:text-[#ff6b9d] transition-colors">Gallery</a>
-              <a href="#utility" onClick={closeMenu} className="hover:text-[#ff6b9d] transition-colors">Utility</a>
-              <a href="#about" onClick={closeMenu} className="hover:text-[#ff6b9d] transition-colors">About</a>
-              <a href="#faq" onClick={closeMenu} className="hover:text-[#ff6b9d] transition-colors">FAQ</a>
-              <Link to="/game" onClick={closeMenu} className="text-[#ff6b9d] hover:text-white transition-colors">Play Game</Link>
+              <motion.a whileHover={{ scale: 1.1, x: 10 }} whileTap={{ scale: 0.95 }} href="#gallery" onClick={closeMenu} className="hover:text-[#ff6b9d] transition-colors">Gallery</motion.a>
+              <motion.a whileHover={{ scale: 1.1, x: 10 }} whileTap={{ scale: 0.95 }} href="#utility" onClick={closeMenu} className="hover:text-[#ff6b9d] transition-colors">Utility</motion.a>
+              <motion.a whileHover={{ scale: 1.1, x: 10 }} whileTap={{ scale: 0.95 }} href="#about" onClick={closeMenu} className="hover:text-[#ff6b9d] transition-colors">About</motion.a>
+              <motion.a whileHover={{ scale: 1.1, x: 10 }} whileTap={{ scale: 0.95 }} href="#faq" onClick={closeMenu} className="hover:text-[#ff6b9d] transition-colors">FAQ</motion.a>
+              <motion.div whileHover={{ scale: 1.1, x: 10 }} whileTap={{ scale: 0.95 }}>
+                <Link to="/game" onClick={closeMenu} className="text-[#ff6b9d] hover:text-white transition-colors">Play Game</Link>
+              </motion.div>
             </nav>
             
-            <div className="mt-auto pb-10 flex gap-8 opacity-50">
-              <a href="https://x.com/the10ksquad" target="_blank" rel="noreferrer">
+            <div className="mt-auto pb-10 flex gap-8">
+              <motion.a 
+                href="https://x.com/the10ksquad" 
+                target="_blank" 
+                rel="noreferrer"
+                whileHover={{ scale: 1.2, color: "#ff6b9d" }}
+                className="opacity-50 transition-all"
+              >
                 <svg viewBox="0 0 24 24" aria-hidden="true" className="w-6 h-6 fill-current"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"></path></svg>
-              </a>
-              <a href="https://discord.gg/the10ksquad" target="_blank" rel="noreferrer">
+              </motion.a>
+              <motion.a 
+                href="https://discord.gg/the10ksquad" 
+                target="_blank" 
+                rel="noreferrer"
+                whileHover={{ scale: 1.2, color: "#5865F2" }}
+                className="opacity-50 transition-all"
+              >
                  <svg className="w-6 h-6 fill-current" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
                  </svg>
-              </a>
+              </motion.a>
             </div>
           </motion.div>
         )}
@@ -171,21 +205,21 @@ export default function Home() {
             <motion.a 
               href="https://opensea.io/collection/the-10k-squad-350905768" 
               target="_blank" 
-              whileHover={{ scale: 1.05, boxShadow: "0 0 30px rgba(255, 107, 157, 0.4)" }} 
+              whileHover={{ scale: 1.1, boxShadow: "0 0 40px rgba(255, 107, 157, 0.6)", backgroundColor: "#ff6b9d", color: "#0a0014" }} 
               whileTap={{ scale: 0.95 }}
-              className={`flex items-center justify-center gap-3 px-6 py-3 rounded-xl font-black tracking-tight transition-all duration-300 shadow-2xl border w-full sm:w-auto ${
+              className={`flex items-center justify-center gap-3 px-8 py-4 rounded-xl font-black tracking-tight transition-all duration-300 shadow-2xl border w-full sm:w-auto ${
                 theme === 'dark' 
                   ? 'bg-[#1a1a1a] text-white border-white/10 hover:border-[#ff6b9d]/30' 
                   : 'bg-white text-black border-black/5 hover:border-black/20 shadow-black/5'
               }`}
             >
-              <img src="/opensea.png" alt="OpenSea" className="w-5 h-5 md:w-6 md:h-6 object-contain rounded-full" />
-              <span className="text-lg md:text-xl text-nowrap">Buy on OpenSea</span>
+              <img src="/opensea.png" alt="OpenSea" className="w-6 h-6 md:w-7 md:h-7 object-contain rounded-full" />
+              <span className="text-xl md:text-2xl text-nowrap">Buy on OpenSea</span>
             </motion.a>
 
             <div className="flex gap-4">
               <motion.a 
-                href="https://x.com/the10ksquad" 
+              href="https://x.com/the10ksquad" 
               target="_blank" 
               whileHover={{ scale: 1.1, translateY: -2, boxShadow: "0 0 20px rgba(255, 107, 157, 0.25)" }}
               whileTap={{ scale: 0.9 }}
@@ -242,9 +276,10 @@ export default function Home() {
               key={i}
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1 }}
+              whileHover={{ y: -5, scale: 1.02 }}
               transition={{ duration: 0.5, delay: i * 0.1 }}
               viewport={{ once: true }}
-              className={`flex flex-col items-center justify-center text-center py-4 sm:py-6 group transition-all duration-300 px-2 ${
+              className={`flex flex-col items-center justify-center text-center py-4 sm:py-6 group transition-all duration-300 px-2 cursor-default ${
                 i % 2 === 0 ? 'border-r border-[#333333] md:border-r' : 'md:border-r border-[#333333]' 
               } last:border-none`}
             >
@@ -421,7 +456,7 @@ export default function Home() {
             <motion.a 
               href="https://discord.gg/the10ksquad" 
               target="_blank"
-              whileHover={{ scale: 1.05, translateY: -2 }}
+              whileHover={{ scale: 1.1, translateY: -5, boxShadow: "0 0 30px rgba(88, 101, 242, 0.6)" }}
               whileTap={{ scale: 0.95 }}
               className="inline-flex items-center gap-4 px-8 py-4 bg-[#5865F2] hover:bg-[#4752C4] text-white rounded-xl font-black tracking-tight transition-all duration-300 shadow-2xl"
             >
@@ -448,17 +483,35 @@ export default function Home() {
               Hand-drawn excellence on Monad. Expanding boundaries through community and utility.
             </p>
             <div className="flex items-center gap-6 justify-center md:justify-start">
-              <a href="https://opensea.io/collection/the-10k-squad-350905768" target="_blank" className="opacity-50 hover:opacity-100 transition-all hover:scale-110">
+              <motion.a 
+                href="https://opensea.io/collection/the-10k-squad-350905768" 
+                target="_blank" 
+                whileHover={{ scale: 1.4, filter: "drop-shadow(0 0 8px rgba(32, 129, 226, 0.6))" }}
+                whileTap={{ scale: 0.9 }}
+                className="opacity-50 hover:opacity-100 transition-all"
+              >
                 <img src="/opensea.png" alt="OpenSea" className="w-6 h-6 object-contain rounded-full" />
-              </a>
-              <a href="https://x.com/the10ksquad" target="_blank" className="opacity-50 hover:opacity-100 transition-all hover:scale-110">
+              </motion.a>
+              <motion.a 
+                href="https://x.com/the10ksquad" 
+                target="_blank" 
+                whileHover={{ scale: 1.4, color: "#ff6b9d" }}
+                whileTap={{ scale: 0.9 }}
+                className="opacity-50 hover:opacity-100 transition-all"
+              >
                 <svg viewBox="0 0 24 24" aria-hidden="true" className="w-6 h-6 fill-current"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"></path></svg>
-              </a>
-              <a href="https://discord.gg/the10ksquad" target="_blank" className="opacity-50 hover:opacity-100 transition-all hover:scale-110">
+              </motion.a>
+              <motion.a 
+                href="https://discord.gg/the10ksquad" 
+                target="_blank" 
+                whileHover={{ scale: 1.4, color: "#5865F2" }}
+                whileTap={{ scale: 0.9 }}
+                className="opacity-50 hover:opacity-100 transition-all"
+              >
                 <svg className={`w-6 h-6 ${theme === 'dark' ? 'fill-white' : 'fill-black'}`} viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                   <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
                 </svg>
-              </a>
+              </motion.a>
             </div>
           </div>
  
@@ -466,17 +519,17 @@ export default function Home() {
             <div className="space-y-6 sm:space-y-8">
               <h4 className="text-[8px] sm:text-[10px] uppercase font-black tracking-[0.4em] opacity-30">The Squad</h4>
               <nav className="flex flex-col gap-3 sm:gap-5 text-xs sm:text-sm font-black italic opacity-60">
-                <a href="#gallery" className="hover:opacity-100 transition-opacity uppercase">Gallery</a>
-                <a href="#utility" className="hover:opacity-100 transition-opacity uppercase">Utility</a>
-                <a href="#about" className="hover:opacity-100 transition-opacity uppercase">About</a>
+                <a href="#gallery" className="hover:opacity-100 hover:text-[#ff6b9d] hover:translate-x-1 transition-all duration-300 uppercase">Gallery</a>
+                <a href="#utility" className="hover:opacity-100 hover:text-[#ff6b9d] hover:translate-x-1 transition-all duration-300 uppercase">Utility</a>
+                <a href="#about" className="hover:opacity-100 hover:text-[#ff6b9d] hover:translate-x-1 transition-all duration-300 uppercase">About</a>
               </nav>
             </div>
             <div className="space-y-6 sm:space-y-8">
               <h4 className="text-[8px] sm:text-[10px] uppercase font-black tracking-[0.4em] opacity-30">Ecosystem</h4>
               <nav className="flex flex-col gap-3 sm:gap-5 text-xs sm:text-sm font-black italic opacity-60">
-                <a href="#" className="hover:opacity-100 transition-opacity uppercase">Monad</a>
-                <a href="#" className="hover:opacity-100 transition-opacity uppercase">Governance</a>
-                <a href="#" className="hover:opacity-100 transition-opacity uppercase">Partners</a>
+                <a href="#" className="hover:opacity-100 hover:text-[#ff6b9d] hover:translate-x-1 transition-all duration-300 uppercase">Monad</a>
+                <a href="#" className="hover:opacity-100 hover:text-[#ff6b9d] hover:translate-x-1 transition-all duration-300 uppercase">Governance</a>
+                <a href="#" className="hover:opacity-100 hover:text-[#ff6b9d] hover:translate-x-1 transition-all duration-300 uppercase">Partners</a>
               </nav>
             </div>
           </div>
