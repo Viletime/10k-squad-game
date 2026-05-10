@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { FloatingParticles } from '../App';
-import { Volume2, VolumeX, ArrowLeft, Play, Trophy, Users, Zap } from 'lucide-react';
+import { Volume2, VolumeX, ArrowLeft, Play, Trophy, Users, Zap, Sun, Moon } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { db, ensureAuth, handleFirestoreError, OperationType } from '../lib/firebase';
 import { collection, addDoc, query, orderBy, limit, getDocs, serverTimestamp } from 'firebase/firestore';
@@ -309,7 +309,12 @@ export default function Game() {
           <div className="flex flex-col items-center w-full">
             <div className="w-full flex flex-col md:flex-row items-stretch md:items-center justify-center mb-8 gap-4 px-2">
               {/* STATS PILL */}
-              <div className={`flex-[1.2] min-h-[70px] rounded-[2rem] border-2 border-white/10 flex items-center justify-between px-4 sm:px-6 py-3 font-mono transition-all duration-500 shadow-xl flex-wrap sm:flex-nowrap gap-2 sm:gap-0 ${theme === 'dark' ? 'bg-[#2a1d35]/60 backdrop-blur-xl' : 'bg-gray-100/80 backdrop-blur-xl'}`}>
+              <motion.div 
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.6 }}
+                className={`flex-[1.2] min-h-[70px] rounded-[2rem] border-2 border-white/10 flex items-center justify-between px-4 sm:px-6 py-3 font-mono transition-all duration-500 shadow-xl flex-wrap sm:flex-nowrap gap-2 sm:gap-0 ${theme === 'dark' ? 'bg-[#2a1d35]/60 backdrop-blur-xl' : 'bg-gray-100/80 backdrop-blur-xl'}`}
+              >
                 <div className="flex flex-col items-center gap-0.5 flex-1 p-1 min-w-[70px]">
                   <span className="text-[#ff6b9d] text-[8px] sm:text-[9px] uppercase font-black tracking-widest opacity-80">SCORE</span>
                   <span className={`text-base sm:text-lg lg:text-xl font-black ${theme === 'dark' ? 'text-white' : 'text-black font-bold'}`}>{score}</span>
@@ -329,10 +334,15 @@ export default function Game() {
                   <span className="text-[#ff6b9d] text-[8px] sm:text-[9px] uppercase font-black tracking-widest opacity-80">MOVES</span>
                   <span className={`text-base sm:text-lg lg:text-xl font-black ${theme === 'dark' ? 'text-white' : 'text-black font-bold'}`}>{turns}</span>
                 </div>
-              </div>
+              </motion.div>
 
               {/* CONTROLS PILL */}
-              <div className={`flex-1 min-h-[70px] rounded-[2rem] border-2 border-white/10 relative transition-all duration-500 shadow-lg z-[40] ${theme === 'dark' ? 'bg-[#2a1d35]/40 backdrop-blur-sm' : 'bg-gray-100/60 backdrop-blur-sm'}`}>
+              <motion.div 
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.6 }}
+                className={`flex-1 min-h-[70px] rounded-[2rem] border-2 border-white/10 relative transition-all duration-500 shadow-lg z-[40] ${theme === 'dark' ? 'bg-[#2a1d35]/40 backdrop-blur-sm' : 'bg-gray-100/60 backdrop-blur-sm'}`}
+              >
                 <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 px-2 bg-transparent z-10 w-full text-center">
                   <span className="text-[#ff6b9d] text-[8px] font-black uppercase tracking-[0.2em] opacity-70">DIFFICULTY</span>
                 </div>
@@ -418,19 +428,22 @@ export default function Game() {
                     {msg}
                   </motion.div>
                 )}
-              </div>
+              </motion.div>
             </div>
 
             <div className="relative w-full min-h-[400px] flex flex-col items-center justify-center">
               {!allMatched && !showLeaderboardScreen && (
                 <>
                   <div className={`grid ${getDifficultySettings().cols} gap-2 sm:gap-3 w-full z-0 relative px-2 sm:px-0`}>
-                    {cards.map(card => (
+                    {cards.map((card, i) => (
                       <motion.div 
                         key={card.id} 
-                        whileHover={{ scale: 1.05, y: -5 }}
-                        whileTap={{ scale: 0.95 }}
-                        className={`relative aspect-square transition-all duration-500 ${card.matched ? 'opacity-0 scale-90 pointer-events-none' : 'opacity-100'}`}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.2 + (i * 0.03), duration: 0.3 }}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        className={`relative aspect-square transition-all duration-300 will-change-transform ${card.matched ? 'opacity-0 scale-90 pointer-events-none' : 'opacity-100'}`}
                       >
                         <div className={`w-full h-full cursor-pointer transition-all duration-500 [transform-style:preserve-3d] ${card === choiceOne || card === choiceTwo || card.matched ? '[transform:rotateY(180deg)]' : ''}`}
                           onClick={() => !disabled && !card.matched && card !== choiceOne && handleChoice(card)}
@@ -601,7 +614,8 @@ export default function Game() {
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
-            className={`p-6 rounded-[2.5rem] border border-current/10 backdrop-blur-xl ${theme === 'dark' ? 'bg-white/5' : 'bg-black/5'}`}
+            transition={{ delay: 0.3, duration: 0.5 }}
+            className={`p-6 rounded-[2.5rem] border border-current/10 backdrop-blur-xl will-change-transform ${theme === 'dark' ? 'bg-white/5' : 'bg-black/5'}`}
           >
             <div className="flex flex-col gap-1 mb-6">
               <h2 className={`text-xl font-black uppercase italic tracking-tighter flex items-center gap-2 ${theme === 'dark' ? 'text-white' : 'text-black'}`}>

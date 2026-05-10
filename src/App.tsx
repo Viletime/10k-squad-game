@@ -136,13 +136,12 @@ export const Marquee = ({ items, reverse = false, theme }: { items: string[], re
           <motion.div
             key={i}
             whileHover={{ 
-              scale: 1.1, 
+              scale: 1.05, 
               zIndex: 50,
-              boxShadow: "0 0 40px rgba(155, 89, 182, 0.4), 0 0 15px rgba(155, 89, 182, 0.2)",
-              borderColor: "rgba(155, 89, 182, 0.8)"
+              borderColor: "rgba(155, 89, 182, 1)"
             }}
-            transition={{ type: "spring", stiffness: 400, damping: 25 }}
-            className={`flex-shrink-0 w-[240px] h-[240px] rounded-[3.5rem] overflow-hidden mx-2 relative cursor-pointer border-2 transition-all duration-300
+            transition={{ type: "spring", stiffness: 300, damping: 20 }}
+            className={`flex-shrink-0 w-[240px] h-[240px] rounded-[3.5rem] overflow-hidden mx-2 relative cursor-pointer border-2 transition-all duration-300 will-change-transform
               ${theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-black/5 border-black/10'}`}
           >
             <motion.img 

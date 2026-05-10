@@ -1,6 +1,8 @@
 {
   "rewrites": [
-    { "source": "/api/nft-stats", "destination": "/api/nft-stats.ts" },
-    { "source": "/((?!api|.*\\..*).*)", "destination": "/index.html" }
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
   ]
 }

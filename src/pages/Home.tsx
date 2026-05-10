@@ -100,7 +100,7 @@ export default function Home() {
       <FloatingParticles />
       
       {/* HEADER */}
-      <nav className={`fixed top-0 left-0 right-0 z-50 px-6 md:px-10 py-4 transition-all duration-300 border-b flex items-center ${
+      <nav className={`fixed top-0 left-0 right-0 z-50 px-6 md:px-10 py-4 transition-all duration-300 border-b flex items-center will-change-transform ${
         isScrolled 
           ? `backdrop-blur-xl ${theme === 'dark' ? 'bg-black/80 border-[#ff6b9d]/20 shadow-[0_4px_20px_rgba(0,0,0,0.5)] text-white' : 'bg-white/80 border-black/10 shadow-lg text-black'}`
           : `bg-transparent border-transparent ${theme === 'dark' ? 'text-white' : 'text-black'}`
@@ -191,17 +191,37 @@ export default function Home() {
 
       {/* HERO SECTION */}
       <header className="pt-[140px] pb-20 px-6 sm:px-10 max-w-7xl mx-auto flex flex-col md:flex-row items-center md:items-start justify-between gap-12 md:gap-16">
-        <motion.div initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }} className="max-w-2xl text-center md:text-left flex flex-col items-center md:items-start">
-          <div className="mb-8 md:mb-10">
+        <div className="max-w-2xl text-center md:text-left flex flex-col items-center md:items-start">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="mb-8 md:mb-10"
+          >
             <TransparentLogo src="/logo-hero.png" className="w-[120px] md:w-[200px]" theme={theme} />
-          </div>
-          <div className="text-lg sm:text-xl md:text-2xl font-black mb-4 md:mb-6 uppercase tracking-tight text-[#ff6b9d]">
+          </motion.div>
+          <motion.div 
+            initial={{ opacity: 0, x: -30 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="text-lg sm:text-xl md:text-2xl font-black mb-4 md:mb-6 uppercase tracking-tight text-[#ff6b9d]"
+          >
             3,333 hand drawn
-          </div>
-          <p className="text-sm sm:text-base md:text-lg opacity-80 font-medium max-w-lg mb-8 leading-relaxed">
+          </motion.div>
+          <motion.p 
+            initial={{ opacity: 0, x: -30 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+            className="text-sm sm:text-base md:text-lg opacity-80 font-medium max-w-lg mb-8 leading-relaxed"
+          >
             The elite NFT collective on Monad. Expanding boundaries through community, art, and decentralized power.
-          </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center md:justify-start gap-4 w-full sm:w-auto">
+          </motion.p>
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+            className="flex flex-col sm:flex-row items-center justify-center md:justify-start gap-4 w-full sm:w-auto"
+          >
             <motion.a 
               href="https://opensea.io/collection/the-10k-squad-350905768" 
               target="_blank" 
@@ -219,37 +239,38 @@ export default function Home() {
 
             <div className="flex gap-4">
               <motion.a 
-              href="https://x.com/the10ksquad" 
-              target="_blank" 
-              whileHover={{ scale: 1.1, translateY: -2, boxShadow: "0 0 20px rgba(255, 107, 157, 0.25)" }}
-              whileTap={{ scale: 0.9 }}
-              className={`w-12 h-12 rounded-xl transition-all duration-300 shadow-xl flex items-center justify-center border group ${
-                theme === 'dark' 
-                  ? 'bg-[#1a1a1a] text-white border-white/10 hover:border-[#ff6b9d]/30' 
-                  : 'bg-white text-black border-black/5 hover:border-black/20 shadow-black/5'
-              }`}
-            >
-              <svg viewBox="0 0 24 24" aria-hidden="true" className="w-5 h-5 fill-current transition-all duration-300 group-hover:scale-110"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"></path></svg>
-            </motion.a>
+                href="https://x.com/the10ksquad" 
+                target="_blank" 
+                whileHover={{ scale: 1.1, translateY: -2, boxShadow: "0 0 20px rgba(255, 107, 157, 0.25)" }}
+                whileTap={{ scale: 0.9 }}
+                className={`w-12 h-12 rounded-xl transition-all duration-300 shadow-xl flex items-center justify-center border group ${
+                  theme === 'dark' 
+                    ? 'bg-[#1a1a1a] text-white border-white/10 hover:border-[#ff6b9d]/30' 
+                    : 'bg-white text-black border-black/5 hover:border-black/20 shadow-black/5'
+                }`}
+              >
+                <svg viewBox="0 0 24 24" aria-hidden="true" className="w-5 h-5 fill-current transition-all duration-300 group-hover:scale-110"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"></path></svg>
+              </motion.a>
 
-            <motion.a 
-              href="https://discord.gg/the10ksquad" 
-              target="_blank" 
-              whileHover={{ scale: 1.1, translateY: -2, boxShadow: "0 0 20px rgba(88, 101, 242, 0.4)" }}
-              whileTap={{ scale: 0.9 }}
-              className={`w-12 h-12 rounded-xl transition-all duration-300 shadow-xl group/discord flex items-center justify-center border ${
-                theme === 'dark' 
-                  ? 'bg-[#1a1a1a] text-white border-white/10 hover:border-[#ff6b9d]/30' 
-                  : 'bg-white text-black border-black/5 hover:border-black/20 shadow-black/5'
-              }`}
-            >
-              <svg className={`w-6 h-6 transition-transform duration-300 group-hover/discord:scale-110 ${theme === 'light' ? 'fill-black' : 'fill-white'}`} viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
-              </svg>
-            </motion.a>
+              <motion.a 
+                href="https://discord.gg/the10ksquad" 
+                target="_blank" 
+                whileHover={{ scale: 1.1, translateY: -2, boxShadow: "0 0 20px rgba(88, 101, 242, 0.4)" }}
+                whileTap={{ scale: 0.9 }}
+                className={`w-12 h-12 rounded-xl transition-all duration-300 shadow-xl group/discord flex items-center justify-center border ${
+                  theme === 'dark' 
+                    ? 'bg-[#1a1a1a] text-white border-white/10 hover:border-[#ff6b9d]/30' 
+                    : 'bg-white text-black border-black/5 hover:border-black/20 shadow-black/5'
+                }`}
+              >
+                <svg className={`w-6 h-6 transition-transform duration-300 group-hover/discord:scale-110 ${theme === 'light' ? 'fill-black' : 'fill-white'}`} viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
+                </svg>
+              </motion.a>
             </div>
-          </div>
-        </motion.div>
+          </motion.div>
+        </div>
+
         
         <motion.div 
           initial={{ opacity: 0, scale: 0.9, rotate: -2 }} 
@@ -274,12 +295,12 @@ export default function Home() {
           {stats.map((stat, i) => (
             <motion.div
               key={i}
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              whileHover={{ y: -5, scale: 1.02 }}
-              transition={{ duration: 0.5, delay: i * 0.1 }}
-              viewport={{ once: true }}
-              className={`flex flex-col items-center justify-center text-center py-4 sm:py-6 group transition-all duration-300 px-2 cursor-default ${
+              initial={{ opacity: 0, y: 10 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-50px" }}
+              transition={{ delay: i * 0.05, duration: 0.4 }}
+              whileHover={{ y: -3 }}
+              className={`flex flex-col items-center justify-center text-center py-4 sm:py-6 group transition-all duration-300 px-2 cursor-default will-change-transform ${
                 i % 2 === 0 ? 'border-r border-[#333333] md:border-r' : 'md:border-r border-[#333333]' 
               } last:border-none`}
             >
@@ -309,10 +330,15 @@ export default function Home() {
  
       {/* WHY HOLD UTILITY */}
       <section id="utility" className="px-6 sm:px-10 max-w-7xl mx-auto mb-24 sm:mb-40 scroll-mt-32">
-        <header className="text-center mb-12 sm:mb-16">
+        <motion.header 
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          className="text-center mb-12 sm:mb-16"
+        >
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-black uppercase italic tracking-tighter mb-4 px-2">WHY HOLD <span className="text-[#ff6b9d]">10K SQUAD</span></h2>
           <div className="h-1.5 w-16 bg-[#ff6b9d] mx-auto rounded-full" />
-        </header>
+        </motion.header>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {[
             { label: "MAGMA", title: "15% Boost on Points", color: "#FF9F43" },
@@ -327,8 +353,12 @@ export default function Home() {
           ].map((item, i) => (
             <motion.div
               key={i}
-              whileHover={{ y: -8, borderColor: `${item.color}40` }}
-              className={`p-6 rounded-[2rem] border border-current/10 group transition-all duration-500 overflow-hidden relative ${theme === 'dark' ? 'bg-white/5' : 'bg-black/5'}`}
+              initial={{ opacity: 0, y: 15 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-50px" }}
+              transition={{ delay: i * 0.04, duration: 0.4 }}
+              whileHover={{ y: -5 }}
+              className={`p-6 rounded-[2rem] border border-current/10 group transition-all duration-300 overflow-hidden relative will-change-transform ${theme === 'dark' ? 'bg-white/5' : 'bg-black/5'}`}
             >
               <div 
                 className="w-fit px-4 py-1.5 rounded-full text-[9px] font-black tracking-widest text-white shadow-xl mb-6"
@@ -352,9 +382,14 @@ export default function Home() {
       </section>
  
       {/* ABOUT */}
-      <section id="about" className="px-6 md:px-10 max-w-7xl mx-auto mb-24 sm:mb-40 scroll-mt-32">
+      <section id="about" className="px-6 md:px-10 max-w-7xl mx-auto mb-24 sm:mb-40 scroll-mt-32 overflow-hidden">
         <div className="flex flex-col-reverse lg:flex-row items-center gap-16 md:gap-24">
-          <div className="flex-1 space-y-6 md:space-y-10 text-center lg:text-left">
+          <motion.div 
+            initial={{ opacity: 0, x: -50 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            className="flex-1 space-y-6 md:space-y-10 text-center lg:text-left"
+          >
             <h2 className="text-3xl sm:text-4xl md:text-6xl font-black uppercase italic tracking-tighter leading-tight">
               About <span className="text-[#9b59b6]">10k SQUAD</span>
             </h2>
@@ -367,15 +402,20 @@ export default function Home() {
                 We're creating a hub of utilities, rewards, partnerships, and exclusive experiences for the entire Monad ecosystem. Made by the community, for the community.
               </p>
             </div>
-          </div>
-          <div className="flex-1 w-full max-w-[300px] sm:max-w-[500px]">
+          </motion.div>
+          <motion.div 
+            initial={{ opacity: 0, x: 50, scale: 0.9 }}
+            whileInView={{ opacity: 1, x: 0, scale: 1 }}
+            viewport={{ once: true }}
+            className="flex-1 w-full max-w-[300px] sm:max-w-[500px]"
+          >
             <motion.div 
               whileHover={{ rotate: 3, scale: 1.05 }}
-              className="relative aspect-square rounded-[3rem] sm:rounded-[5rem] overflow-hidden border-8 sm:border-[12px] border-current/5 shadow-3xl mx-auto"
+              className="relative aspect-square rounded-[3rem] sm:rounded-[5rem] overflow-hidden border-8 sm:border-[12px] border-current/5 shadow-3xl mx-auto will-change-transform"
             >
               <img src="/about_new.png" alt="Vision" loading="lazy" decoding="async" className="w-full h-full object-cover" />
             </motion.div>
-          </div>
+          </motion.div>
         </div>
       </section>
 
@@ -420,7 +460,14 @@ export default function Home() {
               a: "Monad — an EVM-compatible, high-performance blockchain (10,000 TPS)."
             }
           ].map((faq, index) => (
-            <div key={index} className="group overflow-hidden">
+            <motion.div 
+              key={index} 
+              initial={{ opacity: 0, y: 5 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-20px" }}
+              transition={{ delay: index * 0.05, duration: 0.3 }}
+              className="group overflow-hidden will-change-transform"
+            >
               <details className="appearance-none cursor-pointer">
                 <summary className={`flex items-center justify-between p-6 list-none border-b transition-colors duration-300 focus:outline-none ${theme === 'dark' ? 'border-[#333] hover:bg-[#1a1a1a]' : 'border-black/10 hover:bg-black/5'} [&::-webkit-details-marker]:hidden`}>
                   <span className={`text-lg md:text-xl font-bold tracking-tight ${theme === 'dark' ? 'text-white' : 'text-black'}`}>{faq.q}</span>
@@ -433,7 +480,7 @@ export default function Home() {
                   {faq.a}
                 </div>
               </details>
-            </div>
+            </motion.div>
           ))}
         </div>
 
@@ -470,7 +517,13 @@ export default function Home() {
       </section>
 
       {/* FOOTER */}
-      <footer className="px-4 sm:px-10 max-w-7xl mx-auto pb-12 sm:pb-20">
+      <motion.footer 
+        initial={{ opacity: 0, y: 50 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.8 }}
+        className="px-4 sm:px-10 max-w-7xl mx-auto pb-12 sm:pb-20"
+      >
         <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12 sm:gap-24 p-8 sm:p-16 rounded-[3rem] sm:rounded-[5rem] border border-current/10 ${theme === 'dark' ? 'bg-white/5' : 'bg-black/5'}`}>
           <div className="space-y-6 sm:space-y-10 flex flex-col items-center md:items-start text-center md:text-left">
             <div className="flex items-center gap-4">
@@ -539,7 +592,7 @@ export default function Home() {
              <div className="text-[10px] sm:text-xs font-black opacity-30">ALL RIGHTS RESERVED.</div>
           </div>
         </div>
-      </footer>
+      </motion.footer>
 
       {/* BG DECOR */}
       <div className="fixed inset-0 z-[-1] opacity-20 pointer-events-none overflow-hidden">
