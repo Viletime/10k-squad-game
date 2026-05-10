@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Sun, Moon, Menu, X } from 'lucide-react';
+import { Sun as SunIcon, Moon as MoonIcon, Menu, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { FloatingParticles, TransparentLogo, Marquee } from '../App';
 
@@ -129,7 +129,7 @@ export default function Home() {
             onClick={toggleTheme} 
             className="opacity-50 hover:opacity-100 hover:text-[#ff6b9d] transition-all duration-300 cursor-pointer p-2"
           >
-            {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
+            {theme === 'light' ? <MoonIcon size={20} /> : <SunIcon size={20} />}
           </motion.button>
           
           {/* MOBILE MENU BUTTON */}

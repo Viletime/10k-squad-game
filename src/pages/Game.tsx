@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { FloatingParticles } from '../App';
-import { Volume2, VolumeX, ArrowLeft, Play, Trophy, Users, Zap, Sun, Moon } from 'lucide-react';
+import { Volume2, VolumeX, ArrowLeft, Play, Trophy, Users, Zap, Sun as SunIcon, Moon as MoonIcon } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { db, ensureAuth, handleFirestoreError, OperationType } from '../lib/firebase';
 import { collection, addDoc, query, orderBy, limit, getDocs, serverTimestamp } from 'firebase/firestore';
@@ -286,7 +286,7 @@ export default function Game() {
             onClick={() => setTheme(prev => prev === 'light' ? 'dark' : 'light')} 
             className="opacity-50 hover:opacity-100 hover:text-[#ff6b9d] transition-all duration-300 cursor-pointer p-2"
           >
-            {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
+            {theme === 'light' ? <MoonIcon size={20} /> : <SunIcon size={20} />}
           </motion.button>
         </div>
       </nav>
