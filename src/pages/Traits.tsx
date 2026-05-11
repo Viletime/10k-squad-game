@@ -808,7 +808,7 @@ export default function Traits() {
                  <div className="grid grid-cols-2 gap-6 mt-8">
                     <div>
                         <div className={`text-[9px] uppercase tracking-[0.3em] font-black mb-1 leading-none ${theme === 'dark' ? 'opacity-30' : 'text-black/40'}`}>Floor</div>
-                        <div className="text-lg font-black italic tabular-nums leading-none">{collectionStats.floorPrice || '1.91'} <span className="text-[10px] font-sans not-italic">MON</span></div>
+                        <div className="text-lg font-black italic tabular-nums leading-none">{collectionStats.floorPrice || '1,579.12'} <span className="text-[10px] font-sans not-italic">MON</span></div>
                     </div>
                     <div>
                         <div className={`text-[9px] uppercase tracking-[0.3em] font-black mb-1 leading-none ${theme === 'dark' ? 'opacity-30' : 'text-black/40'}`}>Holders</div>
@@ -860,7 +860,7 @@ export default function Traits() {
                             src={item.image || item.image_url || item.display_image_url || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=400&q=80'} 
                             alt={item.name} 
                             referrerPolicy="no-referrer"
-                            className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-110 filter drop-shadow-2xl"
+                            className="w-full h-full object-contain rounded-3xl transition-transform duration-500 group-hover:scale-110 filter drop-shadow-2xl"
                           />
                           {(item.rarity || item.tier) && (
                             <div className="absolute top-2 left-2 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -963,7 +963,7 @@ export default function Traits() {
                     src={selectedNFT.image || selectedNFT.image_url || selectedNFT.display_image_url || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=400&q=80'} 
                     alt={selectedNFT.name} 
                     referrerPolicy="no-referrer"
-                    className="max-h-full max-w-full object-contain filter drop-shadow-[0_35px_35px_rgba(0,0,0,0.6)]"
+                    className="max-h-full max-w-full object-contain rounded-[2.5rem] filter drop-shadow-[0_35px_35px_rgba(0,0,0,0.6)]"
                   />
                 </div>
                 

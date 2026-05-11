@@ -76,7 +76,7 @@ export default function Home() {
   const [nftStats, setNftStats] = useState({
     totalSupply: "3,333",
     holders: "1,100+",
-    floorPrice: "1,917.15",
+    floorPrice: "1,579.12",
     totalVolume: "777K+ MON",
     volumeUsd: "$23K+"
   });
@@ -91,7 +91,7 @@ export default function Home() {
           setNftStats({
             totalSupply: data.totalSupply?.toLocaleString() || "3,333",
             holders: data.holders?.toLocaleString() || "1,100+",
-            floorPrice: typeof data.floorPrice === 'number' ? data.floorPrice.toFixed(2) : "1,917.15",
+            floorPrice: typeof data.floorPrice === 'number' ? data.floorPrice.toFixed(2) : "1,579.12",
             totalVolume: typeof data.totalVolume === 'number' ? 
               (data.totalVolume > 1000 ? (data.totalVolume / 1000).toFixed(0) + "K+ MON" : data.totalVolume.toString() + "+ MON") : "777K+ MON",
             volumeUsd: data.volumeUsd || "$23K+"
