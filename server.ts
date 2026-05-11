@@ -100,7 +100,7 @@ async function startServer() {
 
     try {
       const url = `https://api.opensea.io/api/v2/chain/${chain}/contract/${contract}/nfts/${identifier}`;
-      console.log(`Fetching NFT Details: ${url}`);
+      console.log(`[NFT Details] Fetching: ${url}`);
       const response = await fetch(url, {
         headers: { 
           'X-API-KEY': apiKey,
@@ -108,12 +108,17 @@ async function startServer() {
         }
       });
       
-      if (!response.ok) throw new Error(`OpenSea API responded with ${response.status}`);
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`[NFT Details] OpenSea API error: ${response.status} - ${errorText} - URL: ${url}`);
+        throw new Error(`OpenSea API responded with ${response.status}`);
+      }
       const data = await response.json();
       res.json(data);
     } catch (error) {
       console.error("Error fetching NFT details:", error);
-      res.status(500).json({ error: "Failed to fetch NFT details" });
+      const statusCode = error instanceof Error && error.message.includes('404') ? 404 : 500;
+      res.status(statusCode).json({ error: error instanceof Error ? error.message : "Failed to fetch NFT details" });
     }
   });
 

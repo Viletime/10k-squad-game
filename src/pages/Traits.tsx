@@ -634,17 +634,32 @@ export default function Traits() {
     const fetchDetailedNFT = async () => {
       if (selectedNFT && !getOwnerAddress(selectedNFT)) {
         try {
-          const contract = selectedNFT.contract || '0x495f947276749ce646f68ac8c248420045cb7b5e';
-          const identifier = selectedNFT.identifier || selectedNFT.token_id;
+          let contract = selectedNFT.contract;
+          let identifier = selectedNFT.identifier || selectedNFT.token_id;
+          let chain = selectedNFT.chain || 'ethereum';
           
+          // If contract is missing or we suspect chain might be different, try to parse from opensea_url
+          const osUrl = selectedNFT.opensea_url;
+          if (osUrl && osUrl.includes('opensea.io/assets/')) {
+            const parts = osUrl.split('opensea.io/assets/')[1].split('/');
+            if (parts.length >= 3) {
+              chain = parts[0];
+              if (!contract) contract = parts[1];
+              if (!identifier) identifier = parts[2];
+            }
+          }
+
+          if (!contract) contract = '0x495f947276749ce646f68ac8c248420045cb7b5e';
           if (!identifier) return;
 
-          const res = await fetch(`/api/nft-details?address=${contract}&identifier=${identifier}`);
+          const res = await fetch(`/api/nft-details?address=${contract}&identifier=${identifier}&chain=${chain}`);
           if (res.ok) {
             const data = await res.json();
             if (data.nft) {
               setSelectedNFT({ ...selectedNFT, ...data.nft });
-              // Also update the item in fullNFTs if needed, but for the modal this is enough
+            } else if (data.owners) {
+               // Handle the case where the response might have owners directly
+               setSelectedNFT({ ...selectedNFT, owners: data.owners });
             }
           }
         } catch (err) {
