@@ -83,6 +83,40 @@ async function startServer() {
     }
   });
 
+  // API route for single NFT details (to get owners)
+  app.get("/api/nft-details", async (req, res) => {
+    const apiKey = process.env.OPENSEA_API_KEY;
+    const chain = req.query.chain as string || 'ethereum';
+    const contract = req.query.address as string;
+    const identifier = req.query.identifier as string;
+
+    if (!apiKey) {
+      return res.status(401).json({ error: "API Key missing" });
+    }
+
+    if (!contract || !identifier) {
+      return res.status(400).json({ error: "Contract address and identifier are required" });
+    }
+
+    try {
+      const url = `https://api.opensea.io/api/v2/chain/${chain}/contract/${contract}/nfts/${identifier}`;
+      console.log(`Fetching NFT Details: ${url}`);
+      const response = await fetch(url, {
+        headers: { 
+          'X-API-KEY': apiKey,
+          'accept': 'application/json'
+        }
+      });
+      
+      if (!response.ok) throw new Error(`OpenSea API responded with ${response.status}`);
+      const data = await response.json();
+      res.json(data);
+    } catch (error) {
+      console.error("Error fetching NFT details:", error);
+      res.status(500).json({ error: "Failed to fetch NFT details" });
+    }
+  });
+
   // API route for NFT stats (Server-side proxy to OpenSea)
   app.get("/api/nft-stats", async (req, res) => {
     // Dados manuais conforme solicitado pelo usuário como fallback

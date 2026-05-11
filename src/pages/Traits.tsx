@@ -243,6 +243,10 @@ export default function Traits() {
   };
 
   useEffect(() => {
+    document.documentElement.classList.remove('light', 'dark', 'scrollbar-hide');
+    document.documentElement.classList.add(theme, 'scrollbar-hide');
+    document.body.classList.add('scrollbar-hide');
+    
     const handleScroll = () => setIsScrolled(window.scrollY > 20);
     window.addEventListener('scroll', handleScroll);
     
@@ -452,16 +456,13 @@ export default function Traits() {
       }
     };
 
-    const nftToUrl = (nft: any, slug: string) => {
-      if (!nft) return `https://opensea.io/collection/${slug}`;
-      const id = nft.identifier || nft.token_id;
-      const contract = nft.contract || '0x495f947276749ce646f68ac8c248420045cb7b5e';
-      return id ? `https://opensea.io/assets/ethereum/${contract}/${id}` : `https://opensea.io/collection/${slug}`;
-    };
-
     fetchAllData();
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      document.documentElement.classList.remove('scrollbar-hide');
+      document.body.classList.remove('scrollbar-hide');
+    };
+  }, []); // Only on mount/unmount
 
   useEffect(() => {
     document.documentElement.classList.remove('light', 'dark');
@@ -566,29 +567,57 @@ export default function Traits() {
 
   const copyImageToClipboard = async (url: string) => {
     try {
-      const response = await fetch(url);
-      const blob = await response.blob();
+      const img = new Image();
+      img.crossOrigin = "anonymous";
       
-      // We need to ensure the blob is a type supported by ClipboardItem (usually png)
-      let finalBlob = blob;
-      if (!blob.type.includes('png')) {
-        // In a real app we might want to convert via canvas, but for now we'll try the raw blob
-        // or fall back to copying the link if it fails.
-      }
+      const loadImage = new Promise((resolve, reject) => {
+        img.onload = () => resolve(img);
+        img.onerror = () => reject(new Error('Failed to load image for copying'));
+        // Use a proxy or direct URL - some CDNs allow cross-origin
+        img.src = url;
+      });
 
-      await navigator.clipboard.write([
-        new ClipboardItem({
-          [blob.type]: blob
-        })
-      ]);
+      await loadImage;
+
+      const canvas = document.createElement('canvas');
+      canvas.width = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) throw new Error('Could not get canvas context');
       
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      ctx.drawImage(img, 0, 0);
+      
+      canvas.toBlob(async (blob) => {
+        if (blob) {
+          try {
+            await navigator.clipboard.write([
+              new ClipboardItem({
+                [blob.type]: blob
+              })
+            ]);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+          } catch (err) {
+            console.error('Clipboard write failed, falling back to link:', err);
+            copyToClipboard(url);
+          }
+        }
+      }, 'image/png');
     } catch (error) {
-      console.error('Copy image failed:', error);
-      // Fallback to link
+      console.error('Copy image failed, falling back to link:', error);
       copyToClipboard(url);
     }
+  };
+
+  const getOwnerAddress = (nft: any) => {
+    if (!nft) return null;
+    if (nft.owners && nft.owners.length > 0) {
+      return nft.owners[0].address || (typeof nft.owners[0] === 'string' ? nft.owners[0] : null);
+    }
+    if (nft.owner) {
+      return typeof nft.owner === 'object' ? nft.owner.address : nft.owner;
+    }
+    return null;
   };
 
   const getTraitRarityCount = (type: string, value: string) => {
@@ -601,8 +630,34 @@ export default function Traits() {
     return traitTierMap.get(key) || 'Common';
   };
 
+  useEffect(() => {
+    const fetchDetailedNFT = async () => {
+      if (selectedNFT && !getOwnerAddress(selectedNFT)) {
+        try {
+          const contract = selectedNFT.contract || '0x495f947276749ce646f68ac8c248420045cb7b5e';
+          const identifier = selectedNFT.identifier || selectedNFT.token_id;
+          
+          if (!identifier) return;
+
+          const res = await fetch(`/api/nft-details?address=${contract}&identifier=${identifier}`);
+          if (res.ok) {
+            const data = await res.json();
+            if (data.nft) {
+              setSelectedNFT({ ...selectedNFT, ...data.nft });
+              // Also update the item in fullNFTs if needed, but for the modal this is enough
+            }
+          }
+        } catch (err) {
+          console.error('Failed to fetch detailed NFT info:', err);
+        }
+      }
+    };
+
+    fetchDetailedNFT();
+  }, [selectedNFT]);
+
   return (
-    <div className={`min-h-screen transition-colors duration-500 overflow-x-hidden ${theme === 'dark' ? 'bg-black text-white' : 'bg-white text-black'}`}>
+    <div className={`min-h-screen transition-colors duration-500 overflow-x-hidden scrollbar-hide ${theme === 'dark' ? 'bg-black text-white' : 'bg-white text-black'}`}>
       <FloatingParticles />
 
       {/* HEADER - RESTORED ORIGINAL */}
@@ -621,10 +676,10 @@ export default function Traits() {
         </div>
 
         <div className="hidden md:flex items-center justify-center gap-8 text-[11px] uppercase font-bold tracking-[0.2em]">
-          <Link to="/#gallery" className="opacity-50 hover:opacity-100 hover:text-[#ff6b9d] transition-all duration-300">Gallery</Link>
+          <Link to="/#top" className="opacity-50 hover:opacity-100 hover:text-[#ff6b9d] transition-all duration-300">Home</Link>
           <a href="/#utility" className="opacity-50 hover:opacity-100 hover:text-[#ff6b9d] transition-all duration-300">Utility</a>
           <a href="/#about" className="opacity-50 hover:opacity-100 hover:text-[#ff6b9d] transition-all duration-300">About</a>
-          <Link to="/traits" className="text-[#ff6b9d] hover:scale-110 transition-all font-black underline underline-offset-8">Traits</Link>
+          <Link to="/traits" className="text-[#ff6b9d] hover:scale-110 transition-all font-black underline underline-offset-8">Collection</Link>
           <Link to="/game" className="opacity-50 hover:opacity-100 hover:text-[#ff6b9d] transition-all duration-300">Play</Link>
         </div>
 
@@ -659,11 +714,11 @@ export default function Traits() {
             className="fixed inset-0 z-[40] pt-[100px] bg-black flex flex-col items-center justify-start gap-8 p-10 text-white md:hidden"
           >
             <nav className="flex flex-col items-center gap-8 text-xl uppercase font-black italic tracking-widest text-center">
-              <Link to="/#gallery" onClick={closeMenu} className="hover:text-[#ff6b9d]">Gallery</Link>
+              <Link to="/#top" onClick={closeMenu} className="hover:text-[#ff6b9d]">Home</Link>
               <Link to="/#utility" onClick={closeMenu} className="hover:text-[#ff6b9d]">Utility</Link>
               <Link to="/#about" onClick={closeMenu} className="hover:text-[#ff6b9d]">About</Link>
-              <Link to="/traits" onClick={closeMenu} className="text-[#ff6b9d]">Traits</Link>
-              <Link to="/game" onClick={closeMenu} className="hover:text-[#ff6b9d]">Play Game</Link>
+              <Link to="/traits" onClick={closeMenu} className="text-[#ff6b9d]">Collection</Link>
+              <Link to="/game" onClick={closeMenu} className="hover:text-[#ff6b9d]">Play</Link>
             </nav>
           </motion.div>
         )}
@@ -681,12 +736,16 @@ export default function Traits() {
                 placeholder="Search collection..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full bg-[#1a1a1a] border border-white/5 rounded-2xl py-5 pl-14 pr-4 text-xs font-bold uppercase tracking-[0.2em] outline-none focus:border-[#ff6b9d]/50 shadow-inner"
+                className={`w-full border rounded-2xl py-5 pl-14 pr-4 text-xs font-bold uppercase tracking-[0.2em] outline-none focus:border-[#ff6b9d]/50 shadow-inner transition-colors ${
+                  theme === 'dark' 
+                    ? 'bg-[#1a1a1a] border-white/5 text-white' 
+                    : 'bg-black/5 border-black/5 text-black'
+                }`}
               />
             </div>
 
             <div className="space-y-6">
-              <h3 className="text-[10px] font-black uppercase tracking-[0.4em] opacity-40 px-3 flex justify-between items-center">
+              <h3 className={`text-[10px] font-black uppercase tracking-[0.4em] px-3 flex justify-between items-center ${theme === 'dark' ? 'opacity-40' : 'text-black/60'}`}>
                 <span>Rarity Tiers</span>
               </h3>
               <div className="grid grid-cols-2 gap-2">
@@ -696,8 +755,8 @@ export default function Traits() {
                     onClick={() => { setSelectedTier(tier as any); setCurrentPage(1); }}
                     className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all text-center border ${
                       selectedTier === tier 
-                        ? 'bg-white text-black border-white shadow-[0_0_20px_rgba(255,255,255,0.2)]' 
-                        : 'bg-white/5 border-white/5 opacity-40 hover:opacity-100 hover:bg-white/10'
+                        ? (theme === 'dark' ? 'bg-white text-black border-white shadow-[0_0_20px_rgba(255,255,255,0.2)]' : 'bg-black text-white border-black shadow-[0_0_20px_rgba(0,0,0,0.1)]')
+                        : (theme === 'dark' ? 'bg-white/5 border-white/5 opacity-40 hover:opacity-100 hover:bg-white/10' : 'bg-black/5 border-black/5 text-black/60 hover:opacity-100 hover:bg-black/10')
                     }`}
                   >
                     {tier}
@@ -707,9 +766,9 @@ export default function Traits() {
             </div>
 
             <div className="space-y-4">
-              <h3 className="text-[10px] font-black uppercase tracking-[0.4em] opacity-40 px-3 flex justify-between items-center">
+              <h3 className={`text-[10px] font-black uppercase tracking-[0.4em] px-3 flex justify-between items-center ${theme === 'dark' ? 'opacity-40' : 'text-black/60'}`}>
                 <span>Trait Categories</span>
-                <ChevronDown size={14} className="opacity-40" />
+                <ChevronDown size={14} className={theme === 'dark' ? 'opacity-40' : 'opacity-60'} />
               </h3>
               <div className="space-y-2">
                 {categories.map((cat) => {
@@ -724,14 +783,14 @@ export default function Traits() {
                       className={`w-full flex items-center justify-between px-6 py-4 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all ${
                         selectedCategory === cat 
                           ? 'bg-[#ff6b9d] text-white shadow-[0_10px_30px_rgba(255,107,157,0.3)] scale-[1.02]' 
-                          : 'bg-white/5 opacity-60 hover:opacity-100 hover:bg-white/10'
+                          : (theme === 'dark' ? 'bg-white/5 opacity-60 hover:opacity-100 hover:bg-white/10' : 'bg-black/5 text-black/70 hover:opacity-100 hover:bg-black/10')
                       }`}
                     >
                       <div className="flex flex-col items-start translate-y-0.5">
                         <span className="leading-none mb-0.5">{cat}</span>
-                        <span className={`text-[8px] opacity-40 font-sans normal-case tracking-normal ${selectedCategory === cat ? 'text-white/60' : ''}`}>{count} variants</span>
+                        <span className={`text-[8px] font-sans normal-case tracking-normal ${selectedCategory === cat ? 'text-white/60' : (theme === 'dark' ? 'opacity-40' : 'text-black/40')}`}>{count} variants</span>
                       </div>
-                      <div className={`w-1.5 h-1.5 rounded-full transition-all ${selectedCategory === cat ? 'bg-white' : 'bg-white/20'}`} />
+                      <div className={`w-1.5 h-1.5 rounded-full transition-all ${selectedCategory === cat ? 'bg-white' : (theme === 'dark' ? 'bg-white/20' : 'bg-black/20')}`} />
                     </button>
                   );
                 })}
@@ -739,20 +798,20 @@ export default function Traits() {
             </div>
 
             {collectionStats && (
-              <div className="p-8 rounded-[2.5rem] border border-white/5 bg-gradient-to-br from-white/5 to-transparent space-y-8">
+              <div className={`p-8 rounded-[2.5rem] border transition-colors ${theme === 'dark' ? 'border-white/5 bg-gradient-to-br from-white/5 to-transparent' : 'border-black/5 bg-gradient-to-br from-black/5 to-transparent'}`}>
                  <div className="flex justify-between items-end">
                     <div>
-                        <div className="text-[9px] uppercase tracking-[0.3em] opacity-30 font-black mb-1 leading-none">Total Items</div>
+                        <div className={`text-[9px] uppercase tracking-[0.3em] font-black mb-1 leading-none ${theme === 'dark' ? 'opacity-30' : 'text-black/40'}`}>Total Items</div>
                         <div className="text-3xl font-black italic tabular-nums leading-none">{collectionStats.totalSupply || '3333'}</div>
                     </div>
                  </div>
-                 <div className="grid grid-cols-2 gap-6">
+                 <div className="grid grid-cols-2 gap-6 mt-8">
                     <div>
-                        <div className="text-[9px] uppercase tracking-[0.3em] opacity-30 font-black mb-1 leading-none">Floor</div>
-                        <div className="text-lg font-black italic tabular-nums leading-none">{collectionStats.floorPrice || '1.91'} <span className="text-[10px] font-sans not-italic">ETH</span></div>
+                        <div className={`text-[9px] uppercase tracking-[0.3em] font-black mb-1 leading-none ${theme === 'dark' ? 'opacity-30' : 'text-black/40'}`}>Floor</div>
+                        <div className="text-lg font-black italic tabular-nums leading-none">{collectionStats.floorPrice || '1.91'} <span className="text-[10px] font-sans not-italic">MON</span></div>
                     </div>
                     <div>
-                        <div className="text-[9px] uppercase tracking-[0.3em] opacity-30 font-black mb-1 leading-none">Holders</div>
+                        <div className={`text-[9px] uppercase tracking-[0.3em] font-black mb-1 leading-none ${theme === 'dark' ? 'opacity-30' : 'text-black/40'}`}>Holders</div>
                         <div className="text-lg font-black italic tabular-nums leading-none">{collectionStats.holders || '1.1K'}</div>
                     </div>
                  </div>
@@ -765,23 +824,17 @@ export default function Traits() {
         <div className="flex-1 space-y-12">
           
           {/* NAVIGATION TABS */}
-          <div className="flex flex-col md:flex-row items-center justify-between gap-8 border-b border-white/5 pb-8">
+          <div className={`flex flex-col md:flex-row items-center justify-between gap-8 border-b pb-8 ${theme === 'dark' ? 'border-white/5' : 'border-black/5'}`}>
              <div className="flex gap-16">
-                {(['nfts', 'traits'] as const).map((tab) => (
-                  <button 
-                    key={tab}
-                    onClick={() => { setActiveTab(tab); setCurrentPage(1); }}
-                    className={`text-3xl font-black uppercase italic tracking-tighter pb-8 relative transition-all ${activeTab === tab ? 'text-white after:absolute after:bottom-0 after:left-0 after:w-full after:h-1.5 after:bg-white' : 'opacity-20 hover:opacity-100'}`}
-                  >
-                    {tab === 'nfts' ? 'All NFT' : 'Unique Traits'}
-                  </button>
-                ))}
+                <div className={`text-3xl font-black uppercase italic tracking-tighter pb-8 relative ${theme === 'dark' ? 'text-white after:bg-white' : 'text-black after:bg-black'} after:absolute after:bottom-0 after:left-0 after:w-full after:h-1.5`}>
+                  All NFT
+                </div>
              </div>
              
-             <div className="flex items-center gap-4 text-[10px] uppercase font-black tracking-[0.3em] opacity-30 text-center">
+             <div className={`flex items-center gap-4 text-[10px] uppercase font-black tracking-[0.3em] text-center ${theme === 'dark' ? 'opacity-30' : 'text-black/40'}`}>
                <span>Page {currentPage} of {totalPages || 1}</span>
-               <div className="w-1.5 h-1.5 rounded-full bg-white/20" />
-               <span>{(activeTab === 'nfts' ? filteredNFTs : filteredTraits).length.toLocaleString()} Items</span>
+               <div className={`w-1.5 h-1.5 rounded-full ${theme === 'dark' ? 'bg-white/20' : 'bg-black/20'}`} />
+               <span>{filteredNFTs.length.toLocaleString()} Items</span>
              </div>
           </div>
 
@@ -820,7 +873,7 @@ export default function Traits() {
                             </div>
                           )}
                         </div>
-                        <div className="mt-3 flex flex-col items-center opacity-40 group-hover:opacity-100 transition-all">
+                        <div className={`mt-3 flex flex-col items-center group-hover:opacity-100 transition-all ${theme === 'dark' ? 'opacity-40' : 'text-black/60 opacity-100'}`}>
                            <h3 className="text-[9px] font-black italic tracking-widest uppercase truncate w-full text-center group-hover:text-[#ff6b9d]">
                              {item.name || `10K SQUAD #${item.identifier || item.token_id}`}
                            </h3>
@@ -880,23 +933,31 @@ export default function Traits() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-10"
+            className={`fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-10 ${theme === 'light' ? 'light' : 'dark'}`}
           >
             <motion.div 
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="relative w-full max-w-6xl bg-[#0f0f0f] border border-white/10 rounded-[3rem] overflow-hidden shadow-[0_0_100px_rgba(0,0,0,0.8)] flex flex-col md:flex-row max-h-[90vh]"
+              className={`relative w-full max-w-6xl border rounded-[3rem] overflow-hidden shadow-[0_0_100px_rgba(0,0,0,0.8)] flex flex-col md:flex-row max-h-[90vh] ${
+                theme === 'dark' 
+                  ? 'bg-[#0f0f0f] border-white/10 text-white' 
+                  : 'bg-white border-black/10 text-black shadow-2xl'
+              }`}
             >
               <button 
                 onClick={() => setSelectedNFT(null)}
-                className="absolute top-6 right-6 z-10 w-12 h-12 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center hover:bg-[#ff6b9d] transition-all"
+                className={`absolute top-6 right-6 z-10 w-12 h-12 rounded-full backdrop-blur-md flex items-center justify-center hover:bg-[#ff6b9d] transition-all hover:text-white ${
+                  theme === 'dark' ? 'bg-black/40 text-white' : 'bg-black/5 text-black'
+                }`}
               >
                 <X size={24} />
               </button>
 
               {/* LEFT: Image & Actions */}
-              <div className="w-full md:w-[45%] p-6 lg:p-10 flex flex-col gap-8 bg-[#0a0a0a] border-r border-white/5">
+              <div className={`w-full md:w-[45%] p-6 lg:p-10 flex flex-col gap-8 border-r ${
+                theme === 'dark' ? 'bg-[#0a0a0a] border-white/5' : 'bg-black/[0.02] border-black/5'
+              }`}>
                 <div className="flex-1 flex items-center justify-center min-h-0 min-w-0">
                   <img 
                     src={selectedNFT.image || selectedNFT.image_url || selectedNFT.display_image_url || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=400&q=80'} 
@@ -934,22 +995,33 @@ export default function Traits() {
                     {selectedNFT.name || `10K SQUAD #${selectedNFT.identifier || selectedNFT.token_id}`}
                   </h2>
                   <div className="flex flex-col gap-0.5">
-                    <span className="text-[9px] font-black uppercase tracking-[0.3em] opacity-30">Owner Address</span>
-                    <span className="font-mono text-[#ff6b9d] text-xs break-all font-bold opacity-80 hover:opacity-100 transition-opacity">
-                      {selectedNFT.owners?.[0]?.address || selectedNFT.owner || 'Ox' + Math.random().toString(16).slice(2, 42)}
-                    </span>
+                    <span className={`text-[9px] font-black uppercase tracking-[0.3em] ${theme === 'dark' ? 'opacity-30' : 'text-black/40'}`}>Owner Address</span>
+                    {getOwnerAddress(selectedNFT) ? (
+                      <a 
+                        href={`https://opensea.io/${getOwnerAddress(selectedNFT)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-mono text-[#ff6b9d] text-xs break-all font-bold opacity-80 hover:opacity-100 transition-opacity hover:underline"
+                      >
+                        {getOwnerAddress(selectedNFT)}
+                      </a>
+                    ) : (
+                      <span className={`font-mono text-xs font-bold italic ${theme === 'dark' ? 'text-white/40' : 'text-black/30'}`}>Address Not Found</span>
+                    )}
                   </div>
                 </div>
 
                 <div className="space-y-4">
-                  <h3 className="text-[9px] font-black uppercase tracking-[0.5em] opacity-30 border-b border-white/5 pb-2">Traits & Properties</h3>
+                  <h3 className={`text-[9px] font-black uppercase tracking-[0.5em] border-b pb-2 ${theme === 'dark' ? 'opacity-30 border-white/5' : 'text-black/40 border-black/5'}`}>Traits & Properties</h3>
                   <div className="grid grid-cols-2 gap-3">
                     {(selectedNFT.traits || []).map((t: any, idx: number) => {
                       const tier = getTraitTier(t.trait_type, t.value);
                       return (
-                        <div key={idx} className="group p-3.5 bg-white/5 border border-white/5 rounded-xl hover:border-[#ff6b9d]/20 transition-all hover:bg-white/[0.07]">
+                        <div key={idx} className={`group p-3.5 border rounded-xl hover:border-[#ff6b9d]/20 transition-all ${
+                          theme === 'dark' ? 'bg-white/5 border-white/5 hover:bg-white/[0.07]' : 'bg-black/5 border-black/5 hover:bg-black/[0.08]'
+                        }`}>
                           <div className="flex justify-between items-start mb-1">
-                            <span className="text-[8px] font-black uppercase tracking-widest opacity-40">{t.trait_type}</span>
+                            <span className={`text-[8px] font-black uppercase tracking-widest ${theme === 'dark' ? 'opacity-40' : 'text-black/50'}`}>{t.trait_type}</span>
                             <span 
                               className="text-[7px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-full"
                               style={{ color: TIER_COLORS[tier], border: `1px solid ${TIER_COLORS[tier]}30` }}
@@ -958,7 +1030,7 @@ export default function Traits() {
                             </span>
                           </div>
                           <div className="text-[13px] font-black uppercase italic tracking-tight mb-0.5">{t.value}</div>
-                          <div className="text-[8px] font-bold opacity-25">
+                          <div className={`text-[8px] font-bold ${theme === 'dark' ? 'opacity-25' : 'text-black/30'}`}>
                             {getTraitRarityCount(t.trait_type, t.value)} items share this
                           </div>
                         </div>
@@ -967,19 +1039,26 @@ export default function Traits() {
                   </div>
                 </div>
 
-                <div className="mt-8 pt-6 border-t border-white/5">
+                <div className={`mt-8 pt-6 border-t ${theme === 'dark' ? 'border-white/5' : 'border-black/5'}`}>
                    <a 
                     href={selectedNFT.opensea_url || `https://opensea.io/assets/ethereum/${selectedNFT.contract || '0x495f947276749ce646f68ac8c248420045cb7b5e'}/${selectedNFT.identifier || selectedNFT.token_id}`}
                     target="_blank"
-                    className="flex items-center justify-between p-4 bg-white/5 rounded-2xl group hover:bg-[#2081e2]/20 border border-transparent hover:border-[#2081e2]/40 transition-all"
+                    className={`flex items-center justify-between p-4 rounded-2xl group border transition-all ${
+                      theme === 'dark' ? 'bg-white/5 border-transparent hover:bg-[#2081e2]/10 hover:border-[#2081e2]/30' : 'bg-black/5 border-transparent hover:bg-[#2081e2]/5 hover:border-[#2081e2]/20'
+                    }`}
                    >
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-[#2081e2] flex items-center justify-center p-1.5 shadow-lg">
-                           <img src="https://storage.googleapis.com/opensea-static/Logomark/Logomark-White.svg" alt="OS" className="w-full h-full" />
+                        <div className="w-8 h-8 rounded-full bg-[#2081e2] flex items-center justify-center p-1.5 shadow-[0_0_15px_rgba(32,129,226,0.4)]">
+                           <img 
+                            src="https://upload.wikimedia.org/wikipedia/commons/2/26/OpenSea_icon.svg" 
+                            alt="OpenSea" 
+                            className="w-full h-full object-contain" 
+                            referrerPolicy="no-referrer"
+                           />
                         </div>
                         <span className="text-[10px] font-black uppercase tracking-[0.2em]">View on OpenSea</span>
                       </div>
-                      <ExternalLink size={16} className="opacity-40 group-hover:opacity-100" />
+                      <ExternalLink size={16} className="opacity-40 group-hover:opacity-100 group-hover:text-[#2081e2] transition-all" />
                    </a>
                 </div>
               </div>

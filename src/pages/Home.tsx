@@ -117,12 +117,19 @@ export default function Home() {
   ];
 
   useEffect(() => {
-    document.documentElement.classList.remove('light', 'dark');
-    document.documentElement.classList.add(theme);
+    document.documentElement.classList.remove('light', 'dark', 'scrollbar-hide');
+    document.documentElement.classList.add(theme, 'scrollbar-hide');
+    // Ensure body also has it if needed
+    document.body.classList.add('scrollbar-hide');
+    
+    return () => {
+      document.documentElement.classList.remove('scrollbar-hide');
+      document.body.classList.remove('scrollbar-hide');
+    };
   }, [theme]);
 
   return (
-    <div className={`min-h-screen relative transition-colors duration-500 selection:bg-purple-200 selection:text-purple-900 overflow-x-hidden ${theme === 'dark' ? 'bg-black text-white' : 'bg-white text-black'}`}>
+    <div id="top" className={`min-h-screen relative transition-colors duration-500 selection:bg-purple-200 selection:text-purple-900 overflow-x-hidden scrollbar-hide ${theme === 'dark' ? 'bg-black text-white' : 'bg-white text-black'}`}>
       <FloatingParticles />
       
       {/* HEADER */}
@@ -141,11 +148,11 @@ export default function Home() {
 
         {/* CENTER PART: LINKS */}
         <div className="hidden md:flex items-center justify-center gap-8 text-[11px] uppercase font-bold tracking-[0.2em]">
-          <a href="#gallery" className="opacity-50 hover:opacity-100 hover:text-[#ff6b9d] transition-all duration-300 hover:scale-110 active:scale-95">Gallery</a>
+          <a href="#top" className="opacity-50 hover:opacity-100 hover:text-[#ff6b9d] transition-all duration-300 hover:scale-110 active:scale-95">Home</a>
           <a href="#utility" className="opacity-50 hover:opacity-100 hover:text-[#ff6b9d] transition-all duration-300 hover:scale-110 active:scale-95">Utility</a>
-          <Link to="/traits" className="opacity-50 hover:opacity-100 hover:text-[#ff6b9d] transition-all duration-300 hover:scale-110 active:scale-95">Traits</Link>
           <a href="#about" className="opacity-50 hover:opacity-100 hover:text-[#ff6b9d] transition-all duration-300 hover:scale-110 active:scale-95">About</a>
-          <Link to="/game" className="opacity-50 hover:opacity-100 hover:text-[#ff6b9d] transition-all duration-300 hover:scale-110 active:scale-95">Game</Link>
+          <Link to="/traits" className="opacity-50 hover:opacity-100 hover:text-[#ff6b9d] transition-all duration-300 hover:scale-110 active:scale-95">Collection</Link>
+          <Link to="/game" className="opacity-50 hover:opacity-100 hover:text-[#ff6b9d] transition-all duration-300 hover:scale-110 active:scale-95">Play</Link>
         </div>
 
         {/* RIGHT PART: TOGGLE */}
@@ -181,15 +188,15 @@ export default function Home() {
             className="fixed inset-0 z-[40] pt-[80px] bg-black flex flex-col items-center justify-start gap-8 p-10 text-white md:hidden"
           >
             <nav className="flex flex-col items-center gap-8 text-lg uppercase font-black italic tracking-widest">
-              <motion.a whileHover={{ scale: 1.1, x: 10 }} whileTap={{ scale: 0.95 }} href="#gallery" onClick={closeMenu} className="hover:text-[#ff6b9d] transition-colors">Gallery</motion.a>
+              <motion.a whileHover={{ scale: 1.1, x: 10 }} whileTap={{ scale: 0.95 }} href="#top" onClick={closeMenu} className="hover:text-[#ff6b9d] transition-colors">Home</motion.a>
               <motion.a whileHover={{ scale: 1.1, x: 10 }} whileTap={{ scale: 0.95 }} href="#utility" onClick={closeMenu} className="hover:text-[#ff6b9d] transition-colors">Utility</motion.a>
-              <motion.div whileHover={{ scale: 1.1, x: 10 }} whileTap={{ scale: 0.95 }}>
-                <Link to="/traits" onClick={closeMenu} className="hover:text-[#ff6b9d] transition-colors">Traits</Link>
-              </motion.div>
               <motion.a whileHover={{ scale: 1.1, x: 10 }} whileTap={{ scale: 0.95 }} href="#about" onClick={closeMenu} className="hover:text-[#ff6b9d] transition-colors">About</motion.a>
+              <motion.div whileHover={{ scale: 1.1, x: 10 }} whileTap={{ scale: 0.95 }}>
+                <Link to="/traits" onClick={closeMenu} className="hover:text-[#ff6b9d] transition-colors">Collection</Link>
+              </motion.div>
               <motion.a whileHover={{ scale: 1.1, x: 10 }} whileTap={{ scale: 0.95 }} href="#faq" onClick={closeMenu} className="hover:text-[#ff6b9d] transition-colors">FAQ</motion.a>
               <motion.div whileHover={{ scale: 1.1, x: 10 }} whileTap={{ scale: 0.95 }}>
-                <Link to="/game" onClick={closeMenu} className="text-[#ff6b9d] hover:text-white transition-colors">Play Game</Link>
+                <Link to="/game" onClick={closeMenu} className="text-[#ff6b9d] hover:text-white transition-colors">Play</Link>
               </motion.div>
             </nav>
             
@@ -602,9 +609,9 @@ export default function Home() {
             <div className="space-y-6 sm:space-y-8">
               <h4 className="text-[8px] sm:text-[10px] uppercase font-black tracking-[0.4em] opacity-30">The Squad</h4>
               <nav className="flex flex-col gap-3 sm:gap-5 text-xs sm:text-sm font-black italic opacity-60">
-                <a href="#gallery" className="hover:opacity-100 hover:text-[#ff6b9d] hover:translate-x-1 transition-all duration-300 uppercase">Gallery</a>
+                <a href="#top" className="hover:opacity-100 hover:text-[#ff6b9d] hover:translate-x-1 transition-all duration-300 uppercase">Home</a>
                 <a href="#utility" className="hover:opacity-100 hover:text-[#ff6b9d] hover:translate-x-1 transition-all duration-300 uppercase">Utility</a>
-                <Link to="/traits" className="hover:opacity-100 hover:text-[#ff6b9d] hover:translate-x-1 transition-all duration-300 uppercase">Traits Explorer</Link>
+                <Link to="/traits" className="hover:opacity-100 hover:text-[#ff6b9d] hover:translate-x-1 transition-all duration-300 uppercase">Collection Explorer</Link>
                 <a href="#about" className="hover:opacity-100 hover:text-[#ff6b9d] hover:translate-x-1 transition-all duration-300 uppercase">About</a>
               </nav>
             </div>
