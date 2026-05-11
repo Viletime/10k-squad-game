@@ -21,7 +21,7 @@ export default function Home() {
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
   const closeMenu = () => setIsMenuOpen(false);
 
-  const imagesRow1 = [
+  const [imagesRow1, setImagesRow1] = useState([
     "/2d3bb58eeae451c9ba88008c315f5cb4.avif", 
     "/2e1161b0baaf7208078934d877d11ce0.avif", 
     "/2ef94ab77fefc8d8b3fca2417b9171f4.avif", 
@@ -32,8 +32,8 @@ export default function Home() {
     "/c34bd9e6785385ee5073490cafe34c95.avif",
     "/caf3d641488eeab2c2e80f0c5b12bc1b.avif",
     "/fda273936130247b4db855034f350b9d.avif"
-  ];
-  const imagesRow2 = [
+  ]);
+  const [imagesRow2, setImagesRow2] = useState([
     "/4dcca27a36a594dc0dd09c67c09e6f47.png", 
     "/5257040012b3ed795b9e80b1dc4a3138.png", 
     "/9637f49f56bdb7c439023c5b87974fa4.png", 
@@ -44,7 +44,33 @@ export default function Home() {
     "/e42062911907f1a17bddae6d65e82c14.png",
     "/f179d74d4e3bba6db2a2e8c7128dd6a0.png",
     "/f776df5df5c4832432694489308af210.png"
-  ];
+  ]);
+
+  useEffect(() => {
+    async function loadLocalNFTs() {
+      try {
+        const res = await fetch('/traits-data.json');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.fullNFTs && data.fullNFTs.length > 0) {
+            const allImages = data.fullNFTs
+              .map((n: any) => n.image_url || n.display_image_url || n.image_preview_url)
+              .filter(Boolean);
+            
+            if (allImages.length > 20) {
+              // Shuffle and take 20
+              const shuffled = [...allImages].sort(() => 0.5 - Math.random());
+              setImagesRow1(shuffled.slice(0, 10));
+              setImagesRow2(shuffled.slice(10, 20));
+            }
+          }
+        }
+      } catch (e) {
+        console.log('No local traits-data.json for home gallery');
+      }
+    }
+    loadLocalNFTs();
+  }, []);
 
   /* Stats: update weekly */
   const [nftStats, setNftStats] = useState({
@@ -117,6 +143,7 @@ export default function Home() {
         <div className="hidden md:flex items-center justify-center gap-8 text-[11px] uppercase font-bold tracking-[0.2em]">
           <a href="#gallery" className="opacity-50 hover:opacity-100 hover:text-[#ff6b9d] transition-all duration-300 hover:scale-110 active:scale-95">Gallery</a>
           <a href="#utility" className="opacity-50 hover:opacity-100 hover:text-[#ff6b9d] transition-all duration-300 hover:scale-110 active:scale-95">Utility</a>
+          <Link to="/traits" className="opacity-50 hover:opacity-100 hover:text-[#ff6b9d] transition-all duration-300 hover:scale-110 active:scale-95">Traits</Link>
           <a href="#about" className="opacity-50 hover:opacity-100 hover:text-[#ff6b9d] transition-all duration-300 hover:scale-110 active:scale-95">About</a>
           <Link to="/game" className="opacity-50 hover:opacity-100 hover:text-[#ff6b9d] transition-all duration-300 hover:scale-110 active:scale-95">Game</Link>
         </div>
@@ -156,6 +183,9 @@ export default function Home() {
             <nav className="flex flex-col items-center gap-8 text-lg uppercase font-black italic tracking-widest">
               <motion.a whileHover={{ scale: 1.1, x: 10 }} whileTap={{ scale: 0.95 }} href="#gallery" onClick={closeMenu} className="hover:text-[#ff6b9d] transition-colors">Gallery</motion.a>
               <motion.a whileHover={{ scale: 1.1, x: 10 }} whileTap={{ scale: 0.95 }} href="#utility" onClick={closeMenu} className="hover:text-[#ff6b9d] transition-colors">Utility</motion.a>
+              <motion.div whileHover={{ scale: 1.1, x: 10 }} whileTap={{ scale: 0.95 }}>
+                <Link to="/traits" onClick={closeMenu} className="hover:text-[#ff6b9d] transition-colors">Traits</Link>
+              </motion.div>
               <motion.a whileHover={{ scale: 1.1, x: 10 }} whileTap={{ scale: 0.95 }} href="#about" onClick={closeMenu} className="hover:text-[#ff6b9d] transition-colors">About</motion.a>
               <motion.a whileHover={{ scale: 1.1, x: 10 }} whileTap={{ scale: 0.95 }} href="#faq" onClick={closeMenu} className="hover:text-[#ff6b9d] transition-colors">FAQ</motion.a>
               <motion.div whileHover={{ scale: 1.1, x: 10 }} whileTap={{ scale: 0.95 }}>
@@ -574,6 +604,7 @@ export default function Home() {
               <nav className="flex flex-col gap-3 sm:gap-5 text-xs sm:text-sm font-black italic opacity-60">
                 <a href="#gallery" className="hover:opacity-100 hover:text-[#ff6b9d] hover:translate-x-1 transition-all duration-300 uppercase">Gallery</a>
                 <a href="#utility" className="hover:opacity-100 hover:text-[#ff6b9d] hover:translate-x-1 transition-all duration-300 uppercase">Utility</a>
+                <Link to="/traits" className="hover:opacity-100 hover:text-[#ff6b9d] hover:translate-x-1 transition-all duration-300 uppercase">Traits Explorer</Link>
                 <a href="#about" className="hover:opacity-100 hover:text-[#ff6b9d] hover:translate-x-1 transition-all duration-300 uppercase">About</a>
               </nav>
             </div>

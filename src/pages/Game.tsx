@@ -280,6 +280,9 @@ export default function Game() {
           <span className="text-xl font-black uppercase italic tracking-tighter">BACK TO SQUAD</span>
         </Link>
         <div className={`flex items-center gap-6 ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
+          <Link to="/traits" className="hidden sm:block text-[11px] uppercase font-bold tracking-[0.2em] opacity-50 hover:opacity-100 hover:text-[#ff6b9d] transition-all">
+            Traits
+          </Link>
           <motion.button 
             whileHover={{ scale: 1.2, rotate: 15 }} 
             whileTap={{ scale: 0.9 }}

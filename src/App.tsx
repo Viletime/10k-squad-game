@@ -164,6 +164,7 @@ export const Marquee = ({ items, reverse = false, theme }: { items: string[], re
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Home from './pages/Home';
 import Game from './pages/Game';
+import Traits from './pages/Traits';
 
 export default function App() {
   return (
@@ -171,6 +172,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/game" element={<Game />} />
+        <Route path="/traits" element={<Traits />} />
       </Routes>
     </Router>
   );
