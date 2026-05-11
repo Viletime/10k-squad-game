@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Sun as SunIcon, Moon as MoonIcon, Menu, X } from 'lucide-react';
+import { Sun as SunIcon, Moon as MoonIcon, Menu, X, ExternalLink, Globe } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { FloatingParticles, TransparentLogo, Marquee } from '../App';
 
@@ -378,35 +378,94 @@ export default function Home() {
         </motion.header>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {[
-            { label: "MAGMA", title: "15% Boost on Points", color: "#FF9F43" },
-            { label: "NEVERLAND", title: "20% Boost on Pearls", color: "#B19CD9" },
-            { label: "KINTSU", title: "25% Boost on Points", color: "#00D4FF" },
-            { label: "PINGU", title: "30% Boost (2nd Tier)", color: "#9B59B6" },
-            { label: "SHERPA", title: "Vault Deposit Boost", color: "#1ABC9C" },
-            { label: "BEAN", title: "20% Boost", color: "#2ECC71" },
-            { label: "HAHA WALLET", title: "10% Boost on Karma", color: "#F1C40F" },
-            { label: "FLUFFLE", title: "15 Free Raffle Tickets", color: "#E84393" },
-            { label: "CULTVERSE", title: "20% Gem Boost + Priority", color: "#6C5CE7" }
-          ].map((item, i) => (
+            { label: "MAGMA", title: "15% Boost on Points", color: "#FF9F43", x: "https://x.com/MagmaStaking", web: "https://www.magmastaking.xyz/", bg: "/magma_bg.png" },
+            { label: "NEVERLAND", title: "20% Boost on Pearls", color: "#B19CD9", x: "https://x.com/Neverland_Money", web: "https://neverland.money/", bg: "/neverland_bg.png" },
+            { label: "KINTSU", title: "25% Boost on Points", color: "#00D4FF", x: "https://x.com/Kintsu", web: "https://kintsu.xyz/", bg: "/kintsu_bg.png" },
+            { label: "PINGU", title: "30% Boost (2nd Tier)", color: "#9B59B6", x: "https://x.com/PinguExchange", web: "https://pingu.exchange/", bg: "/pingu_bg.png" },
+            { label: "SHERPA", title: "Vault Deposit Boost", color: "#1ABC9C", x: "https://x.com/Sherpa_trade", web: "https://www.sherpa.trade/", bg: "/sherpa_bg.png" },
+            { label: "BEAN", title: "20% Boost", color: "#2ECC71", x: "https://x.com/Bean_DEX", web: "https://bean.exchange/", bg: "/bean_bg.png" },
+            { label: "HAHA WALLET", title: "10% Boost on Karma", color: "#F1C40F", x: "https://x.com/haha_app", web: "https://www.haha.me/", bg: "/haha_bg.png" },
+            { label: "FLUFFLE", title: "15 Free Raffle Tickets", color: "#E84393", x: "https://x.com/fluffleworld", web: "https://www.fluffle.world/", bg: "/fluffle_bg.png" },
+            { label: "CULTVERSE", title: "20% Gem Boost + Priority", color: "#6C5CE7", x: "https://x.com/cultverse_ai", web: "https://cultverse.ai/", bg: "/cultverse_bg.png" }
+          ].map((item, i) => {
+            // Mapping for high-quality fallbacks if local image doesn't exist
+            const fallbacks: Record<string, string> = {
+              "MAGMA": "https://images.unsplash.com/photo-1518457607834-6e8d80c182c1?w=800&q=80",
+              "NEVERLAND": "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=800&q=80",
+              "KINTSU": "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&q=80",
+              "PINGU": "https://images.unsplash.com/photo-1517783999520-f068d7431a60?w=800&q=80",
+              "SHERPA": "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&q=80",
+              "BEAN": "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=800&q=80",
+              "HAHA WALLET": "https://images.unsplash.com/photo-1550684848-fac1c5b4e853?w=800&q=80",
+              "FLUFFLE": "https://images.unsplash.com/photo-1594498653385-d5172c532c00?w=800&q=80",
+              "CULTVERSE": "https://images.unsplash.com/photo-1614728263952-84ea206f0c41?w=800&q=80"
+            };
+
+            return (
             <motion.div
               key={i}
-              initial={{ opacity: 0, y: 15 }}
+              initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-50px" }}
               transition={{ delay: i * 0.04, duration: 0.4 }}
-              whileHover={{ y: -5 }}
-              className={`p-6 rounded-[2rem] border border-current/10 group transition-all duration-300 overflow-hidden relative will-change-transform ${theme === 'dark' ? 'bg-white/5' : 'bg-black/5'}`}
+              whileHover={{ y: -10 }}
+              className={`p-8 rounded-[2.5rem] border group transition-all duration-500 overflow-hidden relative min-h-[200px] flex flex-col justify-end shadow-2xl will-change-transform ${theme === 'dark' ? 'bg-white/[0.03] border-white/10' : 'bg-black/[0.03] border-black/10'}`}
             >
-              <div 
-                className="w-fit px-4 py-1.5 rounded-full text-[9px] font-black tracking-widest text-white shadow-xl mb-6"
-                style={{ backgroundColor: item.color }}
-              >
-                {item.label}
+              {/* BACKGROUND IMAGE WITH GRADIENT OVERLAY */}
+              <div className="absolute inset-0 z-0 transition-transform duration-700 group-hover:scale-110">
+                <img 
+                  src={item.bg} 
+                  alt="" 
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = fallbacks[item.label] || "https://images.unsplash.com/photo-1614850523296-e811ca9fd093?w=800&q=80";
+                  }}
+                  className="w-full h-full object-cover"
+                />
+                <div className={`absolute inset-0 transition-opacity duration-500 ${
+                  theme === 'dark' 
+                    ? 'bg-gradient-to-t from-black via-black/60 to-black/10 opacity-70 group-hover:opacity-50' 
+                    : 'bg-gradient-to-t from-white via-white/60 to-white/10 opacity-80 group-hover:opacity-60'
+                }`} />
               </div>
-              <h3 className="text-lg font-black uppercase italic tracking-tight">{item.title}</h3>
+
+
+              {/* CORNER LINKS - Glassmorphism */}
+              <div className="absolute top-6 right-6 flex gap-3 opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300 z-20">
+                <motion.a 
+                  href={item.x} 
+                  target="_blank" 
+                  rel="noreferrer"
+                  whileHover={{ scale: 1.1, backgroundColor: "rgba(255, 107, 157, 0.2)" }}
+                  className="w-10 h-10 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 flex items-center justify-center transition-all shadow-xl"
+                >
+                  <svg viewBox="0 0 24 24" aria-hidden="true" className={`w-4 h-4 ${theme === 'dark' ? 'fill-white' : 'fill-black'}`}><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"></path></svg>
+                </motion.a>
+                <motion.a 
+                  href={item.web} 
+                  target="_blank" 
+                  rel="noreferrer"
+                  whileHover={{ scale: 1.1, backgroundColor: "rgba(255, 107, 157, 0.2)" }}
+                  className="w-10 h-10 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 flex items-center justify-center transition-all shadow-xl"
+                >
+                  <Globe size={18} className={theme === 'dark' ? 'text-white' : 'text-black'} />
+                </motion.a>
+              </div>
+
+              <div className="relative z-10">
+                <motion.div 
+                  initial={{ opacity: 0.8 }}
+                  whileHover={{ opacity: 1, scale: 1.05 }}
+                  className="w-fit px-5 py-2 rounded-xl text-[10px] font-black tracking-[0.2em] text-white shadow-2xl mb-4 transition-all"
+                  style={{ backgroundColor: item.color, boxShadow: `0 10px 30px -10px ${item.color}80` }}
+                >
+                  {item.label}
+                </motion.div>
+                <h3 className="text-xl font-black uppercase italic tracking-tight leading-tight group-hover:text-[#ff6b9d] transition-colors duration-300">{item.title}</h3>
+              </div>
             </motion.div>
-          ))}
-        </div>
+          );
+        })}
+      </div>
         <div className="mt-16 text-center">
           <motion.div 
             initial={{ opacity: 0 }}
