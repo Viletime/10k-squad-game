@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Sun as SunIcon, Moon as MoonIcon, Menu, X, Search, Filter, ArrowUpDown, ExternalLink, ChevronDown, RefreshCw } from 'lucide-react';
+import { Sun as SunIcon, Moon as MoonIcon, Menu, X, Search, Filter, ArrowUpDown, ExternalLink, ChevronDown, RefreshCw, Download, Copy, Check } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { FloatingParticles } from '../App';
 
@@ -564,6 +564,33 @@ export default function Traits() {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const copyImageToClipboard = async (url: string) => {
+    try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      
+      // We need to ensure the blob is a type supported by ClipboardItem (usually png)
+      let finalBlob = blob;
+      if (!blob.type.includes('png')) {
+        // In a real app we might want to convert via canvas, but for now we'll try the raw blob
+        // or fall back to copying the link if it fails.
+      }
+
+      await navigator.clipboard.write([
+        new ClipboardItem({
+          [blob.type]: blob
+        })
+      ]);
+      
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (error) {
+      console.error('Copy image failed:', error);
+      // Fallback to link
+      copyToClipboard(url);
+    }
+  };
+
   const getTraitRarityCount = (type: string, value: string) => {
     const trait = traits.find(t => t.category.toLowerCase() === type.toLowerCase() && t.name.toLowerCase() === value.toLowerCase());
     return trait ? trait.holders : 'Unknown';
@@ -667,7 +694,7 @@ export default function Traits() {
                   <button
                     key={tier}
                     onClick={() => { setSelectedTier(tier as any); setCurrentPage(1); }}
-                    className={`px-4 py-3 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all text-center border ${
+                    className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all text-center border ${
                       selectedTier === tier 
                         ? 'bg-white text-black border-white shadow-[0_0_20px_rgba(255,255,255,0.2)]' 
                         : 'bg-white/5 border-white/5 opacity-40 hover:opacity-100 hover:bg-white/10'
@@ -765,29 +792,27 @@ export default function Traits() {
                    <div className="text-xs font-black uppercase tracking-[0.5em] opacity-20 animate-bounce">Accessing Database...</div>
                 </div>
              ) : (
-                <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6 gap-6 md:gap-8">
+                <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6 gap-6 md:gap-10">
                    {paginatedItems.map((item: any, i) => (
                      <motion.div 
                         key={item.id || item.identifier || i} 
-                        initial={{ opacity: 0, scale: 0.9, y: 30 }}
-                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: (i % 12) * 0.04, duration: 0.4 }}
-                        className="group bg-[#0f0f0f] border border-white/5 rounded-[2rem] overflow-hidden hover:border-[#ff6b9d]/50 transition-all duration-500 shadow-[0_20px_50px_rgba(0,0,0,0.4)]"
+                        className="group cursor-pointer relative"
+                        onClick={() => setSelectedNFT(item)}
                       >
-                        <div 
-                          className="aspect-[4/5] relative overflow-hidden bg-[#1a1a1a] cursor-pointer"
-                          onClick={() => setSelectedNFT(item)}
-                        >
+                        <div className="aspect-square relative flex items-center justify-center">
                            <img 
                             src={item.image || item.image_url || item.display_image_url || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=400&q=80'} 
                             alt={item.name} 
                             referrerPolicy="no-referrer"
-                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 grayscale-[30%] group-hover:grayscale-0"
+                            className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-110 filter drop-shadow-2xl"
                           />
                           {(item.rarity || item.tier) && (
-                            <div className="absolute top-5 left-5">
+                            <div className="absolute top-2 left-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                <span 
-                                className="px-3 py-1.5 rounded-full text-white text-[8px] font-black tracking-widest uppercase shadow-2xl backdrop-blur-md"
+                                className="px-2 py-0.5 rounded-full text-white text-[7px] font-black tracking-widest uppercase backdrop-blur-md"
                                 style={{ backgroundColor: item.tier ? `${TIER_COLORS[item.tier]}CC` : '#ff6b9dCC' }}
                                >
                                  {item.rarity || item.tier}
@@ -795,8 +820,8 @@ export default function Traits() {
                             </div>
                           )}
                         </div>
-                        <div className="p-6 bg-black/80 flex flex-col items-center">
-                           <h3 className="text-[11px] font-black italic tracking-tighter uppercase truncate w-full text-center group-hover:text-[#ff6b9d] transition-colors">
+                        <div className="mt-3 flex flex-col items-center opacity-40 group-hover:opacity-100 transition-all">
+                           <h3 className="text-[9px] font-black italic tracking-widest uppercase truncate w-full text-center group-hover:text-[#ff6b9d]">
                              {item.name || `10K SQUAD #${item.identifier || item.token_id}`}
                            </h3>
                         </div>
@@ -871,69 +896,69 @@ export default function Traits() {
               </button>
 
               {/* LEFT: Image & Actions */}
-              <div className="w-full md:w-[45%] bg-[#151515] p-6 lg:p-10 flex flex-col gap-8 border-r border-white/5 overflow-y-auto">
-                <div className="aspect-square rounded-[2rem] overflow-hidden shadow-2xl border border-white/5 bg-[#050505] flex items-center justify-center">
+              <div className="w-full md:w-[45%] p-6 lg:p-10 flex flex-col gap-8 bg-[#0a0a0a] border-r border-white/5">
+                <div className="flex-1 flex items-center justify-center min-h-0 min-w-0">
                   <img 
                     src={selectedNFT.image || selectedNFT.image_url || selectedNFT.display_image_url || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=400&q=80'} 
                     alt={selectedNFT.name} 
                     referrerPolicy="no-referrer"
-                    className="w-full h-full object-contain"
+                    className="max-h-full max-w-full object-contain filter drop-shadow-[0_35px_35px_rgba(0,0,0,0.6)]"
                   />
                 </div>
-
-                <div className="flex gap-4">
+                
+                <div className="flex gap-4 shrink-0">
                   <button 
                     onClick={() => downloadImage(selectedNFT.image || selectedNFT.image_url || selectedNFT.display_image_url, selectedNFT.name || 'nft')}
-                    className="flex-1 flex items-center justify-center gap-3 bg-white text-black h-16 rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-[#ff6b9d] hover:text-white transition-all active:scale-95 shadow-lg"
+                    className="flex-1 flex items-center justify-center gap-3 bg-white text-black h-14 rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-[#ff6b9d] hover:text-white transition-all active:scale-95 shadow-2xl"
                   >
-                    <RefreshCw className="rotate-180" size={18} />
+                    <Download size={18} />
                     Download
                   </button>
                   <button 
-                    onClick={() => copyToClipboard(selectedNFT.image || selectedNFT.image_url || selectedNFT.display_image_url)}
-                    className="flex-1 flex items-center justify-center gap-3 bg-white/5 border border-white/10 h-16 rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-white/10 transition-all active:scale-95 shadow-lg"
+                    onClick={() => copyImageToClipboard(selectedNFT.image || selectedNFT.image_url || selectedNFT.display_image_url)}
+                    className="flex-1 flex items-center justify-center gap-3 bg-white/5 border border-white/10 h-14 rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-white/10 transition-all active:scale-95 shadow-lg"
                   >
-                    {copied ? <RefreshCw className="text-green-500" size={18} /> : <ExternalLink size={18} />}
-                    {copied ? 'Copied!' : 'Copy Link'}
+                    {copied ? <Check className="text-green-500" size={18} /> : <Copy size={18} />}
+                    {copied ? 'Copied!' : 'Copy Image'}
                   </button>
                 </div>
               </div>
 
               {/* RIGHT: Metadata & Traits */}
-              <div className="flex-1 p-8 lg:p-12 overflow-y-auto custom-scrollbar">
-                <div className="space-y-2 mb-10">
+              <div className="flex-1 p-8 lg:p-10 overflow-y-auto scrollbar-hide">
+                <div className="space-y-2 mb-8">
                   <div className="flex items-center gap-4 mb-2">
-                    <span className="px-3 py-1 bg-[#ff6b9d]/20 text-[#ff6b9d] rounded-full text-[9px] font-black uppercase tracking-widest">NFT Identifier: {selectedNFT.identifier || selectedNFT.token_id || '#0'}</span>
+                    <span className="px-3 py-1 bg-[#ff6b9d]/20 text-[#ff6b9d] rounded-full text-[8px] font-black uppercase tracking-widest">NFT ID: {selectedNFT.identifier || selectedNFT.token_id || '#0'}</span>
                   </div>
-                  <h2 className="text-2xl md:text-3xl font-black uppercase italic tracking-tighter leading-tight mb-4">
+                  <h2 className="text-xl md:text-2xl font-black uppercase italic tracking-tighter leading-tight mb-2">
                     {selectedNFT.name || `10K SQUAD #${selectedNFT.identifier || selectedNFT.token_id}`}
                   </h2>
-                  <div className="flex flex-col gap-1">
-                    <span className="text-[10px] font-black uppercase tracking-[0.3em] opacity-30">Owned by</span>
-                    <span className="font-mono text-[#ff6b9d] text-sm break-all font-bold">
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-[9px] font-black uppercase tracking-[0.3em] opacity-30">Owner Address</span>
+                    <span className="font-mono text-[#ff6b9d] text-xs break-all font-bold opacity-80 hover:opacity-100 transition-opacity">
                       {selectedNFT.owners?.[0]?.address || selectedNFT.owner || 'Ox' + Math.random().toString(16).slice(2, 42)}
                     </span>
                   </div>
                 </div>
 
-                <div className="space-y-6">
-                  <h3 className="text-[10px] font-black uppercase tracking-[0.5em] opacity-30 border-b border-white/5 pb-4">Traits Analysis</h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-4">
+                  <h3 className="text-[9px] font-black uppercase tracking-[0.5em] opacity-30 border-b border-white/5 pb-2">Traits & Properties</h3>
+                  <div className="grid grid-cols-2 gap-3">
                     {(selectedNFT.traits || []).map((t: any, idx: number) => {
                       const tier = getTraitTier(t.trait_type, t.value);
                       return (
-                        <div key={idx} className="group p-5 bg-white/5 border border-white/5 rounded-2xl hover:border-[#ff6b9d]/30 transition-all hover:bg-white/[0.07]">
-                          <div className="flex justify-between items-start mb-2">
-                            <span className="text-[9px] font-black uppercase tracking-widest opacity-40 group-hover:opacity-100 transition-opacity">{t.trait_type}</span>
+                        <div key={idx} className="group p-3.5 bg-white/5 border border-white/5 rounded-xl hover:border-[#ff6b9d]/20 transition-all hover:bg-white/[0.07]">
+                          <div className="flex justify-between items-start mb-1">
+                            <span className="text-[8px] font-black uppercase tracking-widest opacity-40">{t.trait_type}</span>
                             <span 
-                              className="text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full"
-                              style={{ color: TIER_COLORS[tier], border: `1px solid ${TIER_COLORS[tier]}40` }}
+                              className="text-[7px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-full"
+                              style={{ color: TIER_COLORS[tier], border: `1px solid ${TIER_COLORS[tier]}30` }}
                             >
                               {tier}
                             </span>
                           </div>
-                          <div className="text-lg font-black uppercase italic tracking-tight mb-2">{t.value}</div>
-                          <div className="text-[10px] font-bold opacity-30 group-hover:opacity-60 transition-opacity">
+                          <div className="text-[13px] font-black uppercase italic tracking-tight mb-0.5">{t.value}</div>
+                          <div className="text-[8px] font-bold opacity-25">
                             {getTraitRarityCount(t.trait_type, t.value)} items share this
                           </div>
                         </div>
@@ -942,19 +967,19 @@ export default function Traits() {
                   </div>
                 </div>
 
-                <div className="mt-12 pt-8 border-t border-white/5">
+                <div className="mt-8 pt-6 border-t border-white/5">
                    <a 
                     href={selectedNFT.opensea_url || `https://opensea.io/assets/ethereum/${selectedNFT.contract || '0x495f947276749ce646f68ac8c248420045cb7b5e'}/${selectedNFT.identifier || selectedNFT.token_id}`}
                     target="_blank"
-                    className="flex items-center justify-between p-6 bg-white/5 rounded-3xl group hover:bg-[#2081e2] transition-all"
+                    className="flex items-center justify-between p-4 bg-white/5 rounded-2xl group hover:bg-[#2081e2]/20 border border-transparent hover:border-[#2081e2]/40 transition-all"
                    >
-                      <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-full bg-[#2081e2] flex items-center justify-center p-2">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-[#2081e2] flex items-center justify-center p-1.5 shadow-lg">
                            <img src="https://storage.googleapis.com/opensea-static/Logomark/Logomark-White.svg" alt="OS" className="w-full h-full" />
                         </div>
-                        <span className="text-xs font-black uppercase tracking-widest">Marketplace Profile</span>
+                        <span className="text-[10px] font-black uppercase tracking-[0.2em]">View on OpenSea</span>
                       </div>
-                      <ExternalLink size={20} className="opacity-40 group-hover:opacity-100" />
+                      <ExternalLink size={16} className="opacity-40 group-hover:opacity-100" />
                    </a>
                 </div>
               </div>
