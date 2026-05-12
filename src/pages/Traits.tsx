@@ -642,18 +642,28 @@ export default function Traits() {
           let identifier = selectedNFT.identifier || selectedNFT.token_id;
           let chain = selectedNFT.chain || 'ethereum';
           
+          // If contract is the OpenSea Shared Storefront, it's likely on Polyhon (matic)
+          if (contract === '0x495f947276749ce646f68ac8c248420045cb7b5e' && (!selectedNFT.chain || selectedNFT.chain === 'ethereum')) {
+            chain = 'matic';
+          }
+          
           // If contract is missing or we suspect chain might be different, try to parse from opensea_url
           const osUrl = selectedNFT.opensea_url;
           if (osUrl && osUrl.includes('opensea.io/assets/')) {
             const parts = osUrl.split('opensea.io/assets/')[1].split('/');
             if (parts.length >= 3) {
               chain = parts[0];
+              // OpenSea API uses 'matic' for Polygon
+              if (chain === 'polygon') chain = 'matic';
+              
               if (!contract) contract = parts[1];
               if (!identifier) identifier = parts[2];
             }
           }
 
           if (!contract) contract = '0x495f947276749ce646f68ac8c248420045cb7b5e';
+          // Final fallback: if it's the shared storefront and chain is still ethereum, use matic
+          if (contract === '0x495f947276749ce646f68ac8c248420045cb7b5e' && chain === 'ethereum') chain = 'matic';
           if (!identifier) return;
 
           const res = await fetch(`/api/nft-details?address=${contract}&identifier=${identifier}&chain=${chain}`);
