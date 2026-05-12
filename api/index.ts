@@ -11,8 +11,26 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 
-// Middleware para JSON
+// Middleware para JSON e CORS simples
 app.use(express.json());
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-API-KEY');
+  next();
+});
+
+// API route for health check
+app.get("/api/health", (req, res) => {
+  const apiKey = process.env.OPENSEA_API_KEY;
+  res.json({ 
+    status: "ok", 
+    hasApiKey: !!apiKey,
+    apiKeyLength: apiKey ? apiKey.length : 0,
+    env: process.env.NODE_ENV,
+    isVercel: !!process.env.VERCEL
+  });
+});
 
 // API route for collection traits
 app.get("/api/traits", async (req, res) => {
@@ -31,7 +49,8 @@ app.get("/api/traits", async (req, res) => {
       const response = await fetch(`https://api.opensea.io/api/v2/collections/${collectionSlug}/traits`, {
         headers: { 
           'X-API-KEY': apiKey,
-          'accept': 'application/json'
+          'accept': 'application/json',
+          'User-Agent': '10kSquad-App/1.0'
         }
       });
       
@@ -99,7 +118,8 @@ app.get("/api/nft-details", async (req, res) => {
     const response = await fetch(url, {
       headers: { 
         'X-API-KEY': apiKey,
-        'accept': 'application/json'
+        'accept': 'application/json',
+        'User-Agent': '10kSquad-App/1.0'
       }
     });
     
@@ -137,7 +157,8 @@ app.get("/api/nft-stats", async (req, res) => {
       const response = await fetch(`https://api.opensea.io/api/v2/collections/${collectionSlug}/stats`, {
         headers: { 
           'X-API-KEY': apiKey,
-          'accept': 'application/json'
+          'accept': 'application/json',
+          'User-Agent': '10kSquad-App/1.0'
         }
       });
       

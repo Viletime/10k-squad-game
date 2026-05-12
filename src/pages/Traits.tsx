@@ -666,6 +666,7 @@ export default function Traits() {
           if (contract === '0x495f947276749ce646f68ac8c248420045cb7b5e' && chain === 'ethereum') chain = 'matic';
           if (!identifier) return;
 
+          console.log(`[Traits] Fetching owner for: ${chain}/${contract}/${identifier}`);
           const res = await fetch(`/api/nft-details?address=${contract}&identifier=${identifier}&chain=${chain}`);
           if (res.ok) {
             const data = await res.json();
