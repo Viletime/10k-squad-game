@@ -430,24 +430,25 @@ export default function Home() {
 
 
               {/* CORNER LINKS - Glassmorphism */}
-              <div className="absolute top-6 right-6 flex gap-3 opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300 z-20">
+              <div className="absolute top-4 right-4 sm:top-6 sm:right-6 flex gap-2 sm:gap-3 z-20 transition-all duration-300 sm:opacity-0 sm:group-hover:opacity-100 sm:translate-y-2 sm:group-hover:translate-y-0">
                 <motion.a 
                   href={item.x} 
                   target="_blank" 
                   rel="noreferrer"
                   whileHover={{ scale: 1.1, backgroundColor: "rgba(255, 107, 157, 0.2)" }}
-                  className="w-10 h-10 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 flex items-center justify-center transition-all shadow-xl"
+                  className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 flex items-center justify-center transition-all shadow-xl"
                 >
-                  <svg viewBox="0 0 24 24" aria-hidden="true" className={`w-4 h-4 ${theme === 'dark' ? 'fill-white' : 'fill-black'}`}><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"></path></svg>
+                  <svg viewBox="0 0 24 24" aria-hidden="true" className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${theme === 'dark' ? 'fill-white' : 'fill-black'}`}><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"></path></svg>
                 </motion.a>
                 <motion.a 
                   href={item.web} 
                   target="_blank" 
                   rel="noreferrer"
                   whileHover={{ scale: 1.1, backgroundColor: "rgba(255, 107, 157, 0.2)" }}
-                  className="w-10 h-10 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 flex items-center justify-center transition-all shadow-xl"
+                  className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 flex items-center justify-center transition-all shadow-xl"
                 >
-                  <Globe size={18} className={theme === 'dark' ? 'text-white' : 'text-black'} />
+                  <Globe size={16} strokeWidth={2.5} className={`sm:hidden ${theme === 'dark' ? 'text-white' : 'text-black'}`} />
+                  <Globe size={18} className={`hidden sm:block ${theme === 'dark' ? 'text-white' : 'text-black'}`} />
                 </motion.a>
               </div>
 

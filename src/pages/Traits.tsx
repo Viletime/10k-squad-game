@@ -519,6 +519,10 @@ export default function Traits() {
       }
       
       return matchesSearch && matchesCategory && matchesTier;
+    }).sort((a, b) => {
+      const idA = parseInt(a.identifier || a.token_id || '0', 10);
+      const idB = parseInt(b.identifier || b.token_id || '0', 10);
+      return idA - idB;
     });
   }, [fullNFTs, search, selectedCategory, selectedTier, traitTierMap]);
 
@@ -780,38 +784,6 @@ export default function Traits() {
               </div>
             </div>
 
-            <div className="space-y-4">
-              <h3 className={`text-[10px] font-black uppercase tracking-[0.4em] px-3 flex justify-between items-center ${theme === 'dark' ? 'opacity-40' : 'text-black/60'}`}>
-                <span>Trait Categories</span>
-                <ChevronDown size={14} className={theme === 'dark' ? 'opacity-40' : 'opacity-60'} />
-              </h3>
-              <div className="space-y-2">
-                {categories.map((cat) => {
-                  const count = cat === 'All' 
-                    ? traits.length 
-                    : traits.filter(t => t.category === cat).length;
-                  
-                  return (
-                    <button
-                      key={cat}
-                      onClick={() => { setSelectedCategory(cat === selectedCategory ? null : cat); setCurrentPage(1); }}
-                      className={`w-full flex items-center justify-between px-6 py-4 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all ${
-                        selectedCategory === cat 
-                          ? 'bg-[#ff6b9d] text-white shadow-[0_10px_30px_rgba(255,107,157,0.3)] scale-[1.02]' 
-                          : (theme === 'dark' ? 'bg-white/5 opacity-60 hover:opacity-100 hover:bg-white/10' : 'bg-black/5 text-black/70 hover:opacity-100 hover:bg-black/10')
-                      }`}
-                    >
-                      <div className="flex flex-col items-start translate-y-0.5">
-                        <span className="leading-none mb-0.5">{cat}</span>
-                        <span className={`text-[8px] font-sans normal-case tracking-normal ${selectedCategory === cat ? 'text-white/60' : (theme === 'dark' ? 'opacity-40' : 'text-black/40')}`}>{count} variants</span>
-                      </div>
-                      <div className={`w-1.5 h-1.5 rounded-full transition-all ${selectedCategory === cat ? 'bg-white' : (theme === 'dark' ? 'bg-white/20' : 'bg-black/20')}`} />
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
             {collectionStats && (
               <div className={`p-8 rounded-[2.5rem] border transition-colors ${theme === 'dark' ? 'border-white/5 bg-gradient-to-br from-white/5 to-transparent' : 'border-black/5 bg-gradient-to-br from-black/5 to-transparent'}`}>
                  <div className="flex justify-between items-end">
@@ -1009,17 +981,20 @@ export default function Traits() {
                   <h2 className="text-xl md:text-2xl font-black uppercase italic tracking-tighter leading-tight mb-2">
                     {selectedNFT.name || `10K SQUAD #${selectedNFT.identifier || selectedNFT.token_id}`}
                   </h2>
-                  <div className="flex flex-col gap-0.5">
-                    <span className={`text-[9px] font-black uppercase tracking-[0.3em] ${theme === 'dark' ? 'opacity-30' : 'text-black/40'}`}>Owner Address</span>
+                    <div className="flex flex-col gap-0.5">
+                    <span className={`text-[9px] font-black uppercase tracking-[0.3em] ${theme === 'dark' ? 'opacity-30' : 'text-black/40'}`}>Ownership</span>
                     {getOwnerAddress(selectedNFT) ? (
-                      <a 
-                        href={`https://opensea.io/${getOwnerAddress(selectedNFT)}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="font-mono text-[#ff6b9d] text-xs break-all font-bold opacity-80 hover:opacity-100 transition-opacity hover:underline"
-                      >
-                        {getOwnerAddress(selectedNFT)}
-                      </a>
+                      <div className="font-mono text-xs font-bold flex items-center gap-1.5 leading-none">
+                        <span className={theme === 'dark' ? 'text-white/60' : 'text-black/60'}>Owned by</span>
+                        <a 
+                          href={`https://opensea.io/${getOwnerAddress(selectedNFT)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-[#ff6b9d] opacity-80 hover:opacity-100 transition-opacity hover:underline"
+                        >
+                          {getOwnerAddress(selectedNFT).substring(0, 6)}...{getOwnerAddress(selectedNFT).substring(getOwnerAddress(selectedNFT).length - 4)}
+                        </a>
+                      </div>
                     ) : (
                       <span className={`font-mono text-xs font-bold italic ${theme === 'dark' ? 'text-white/40' : 'text-black/30'}`}>Address Not Found</span>
                     )}
