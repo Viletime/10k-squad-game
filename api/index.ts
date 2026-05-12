@@ -1,5 +1,4 @@
 import express from "express";
-import { createServer as createViteServer } from "vite";
 import path from "path";
 import { fileURLToPath } from "url";
 import dotenv from "dotenv";
@@ -115,6 +114,8 @@ app.get("/api/nft-details", async (req, res) => {
 
   try {
     const url = `https://api.opensea.io/api/v2/chain/${chain}/contract/${contract}/nfts/${identifier}`;
+    console.log(`[NFT Details] Fetching from OS: ${url}`);
+    
     const response = await fetch(url, {
       headers: { 
         'X-API-KEY': apiKey,
@@ -186,6 +187,7 @@ app.get("/api/nft-stats", async (req, res) => {
 // Development vs Production
 if (process.env.NODE_ENV !== "production" && !process.env.VERCEL) {
   async function startDev() {
+    const { createServer: createViteServer } = await import("vite");
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: "spa",
