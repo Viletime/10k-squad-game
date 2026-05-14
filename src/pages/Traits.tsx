@@ -78,6 +78,11 @@ export default function Traits() {
   // Sync States
   const [syncProgress, setSyncProgress] = useState<{ current: number, total: number, active: boolean }>({ current: 0, total: 3333, active: false });
 
+  // Reset page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, selectedTier, selectedCategory, activeTab]);
+
   const toggleTheme = () => setTheme(prev => prev === 'light' ? 'dark' : 'light');
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
   const closeMenu = () => setIsMenuOpen(false);
@@ -498,8 +503,15 @@ export default function Traits() {
 
   const filteredNFTs = useMemo(() => {
     return fullNFTs.filter(nft => {
-      const name = nft.name || `10K SQUAD #${nft.identifier || nft.token_id}`;
-      const matchesSearch = name.toLowerCase().includes(search.toLowerCase());
+      const id = nft.identifier || nft.token_id || '';
+      const name = nft.name || `10K SQUAD #${id}`;
+      const searchLower = search.toLowerCase();
+      const cleanSearch = search.replace('#', '').trim();
+      
+      const matchesSearch = search === '' || 
+        name.toLowerCase().includes(searchLower) || 
+        id === cleanSearch || // Match exato do ID numérico
+        id.includes(cleanSearch); // Contém o ID
       
       const nftTraits = nft.traits || [];
       
@@ -710,6 +722,7 @@ export default function Traits() {
           <a href="/#utility" className="opacity-50 hover:opacity-100 hover:text-[#ff6b9d] transition-all duration-300">Utility</a>
           <a href="/#about" className="opacity-50 hover:opacity-100 hover:text-[#ff6b9d] transition-all duration-300">About</a>
           <Link to="/traits" className="text-[#ff6b9d] hover:scale-110 transition-all font-black underline underline-offset-8">Collection</Link>
+          <Link to="/swap" className="opacity-50 hover:opacity-100 hover:text-[#ff6b9d] transition-all duration-300">Swap</Link>
           <Link to="/game" className="opacity-50 hover:opacity-100 hover:text-[#ff6b9d] transition-all duration-300">Play</Link>
         </div>
 
@@ -748,6 +761,7 @@ export default function Traits() {
               <Link to="/#utility" onClick={closeMenu} className="hover:text-[#ff6b9d]">Utility</Link>
               <Link to="/#about" onClick={closeMenu} className="hover:text-[#ff6b9d]">About</Link>
               <Link to="/traits" onClick={closeMenu} className="text-[#ff6b9d]">Collection</Link>
+              <Link to="/swap" onClick={closeMenu} className="hover:text-[#ff6b9d]">Swap</Link>
               <Link to="/game" onClick={closeMenu} className="hover:text-[#ff6b9d]">Play</Link>
             </nav>
           </motion.div>

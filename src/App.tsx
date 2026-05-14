@@ -165,6 +165,7 @@ import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-route
 import Home from './pages/Home';
 import Game from './pages/Game';
 import Traits from './pages/Traits';
+import Swap from './pages/Swap';
 
 const ScrollToTop = () => {
   const { pathname } = useLocation();
@@ -184,6 +185,7 @@ export default function App() {
         <Route path="/" element={<Home />} />
         <Route path="/game" element={<Game />} />
         <Route path="/traits" element={<Traits />} />
+        <Route path="/swap" element={<Swap />} />
       </Routes>
     </Router>
   );

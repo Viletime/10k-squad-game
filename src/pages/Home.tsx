@@ -152,6 +152,7 @@ export default function Home() {
           <a href="#utility" className="opacity-50 hover:opacity-100 hover:text-[#ff6b9d] transition-all duration-300 hover:scale-110 active:scale-95">Utility</a>
           <a href="#about" className="opacity-50 hover:opacity-100 hover:text-[#ff6b9d] transition-all duration-300 hover:scale-110 active:scale-95">About</a>
           <Link to="/traits" className="opacity-50 hover:opacity-100 hover:text-[#ff6b9d] transition-all duration-300 hover:scale-110 active:scale-95">Collection</Link>
+          <Link to="/swap" className="opacity-50 hover:opacity-100 hover:text-[#ff6b9d] transition-all duration-300 hover:scale-110 active:scale-95 text-[#ff6b9d]">Swap</Link>
           <Link to="/game" className="opacity-50 hover:opacity-100 hover:text-[#ff6b9d] transition-all duration-300 hover:scale-110 active:scale-95">Play</Link>
         </div>
 
@@ -193,6 +194,9 @@ export default function Home() {
               <motion.a whileHover={{ scale: 1.1, x: 10 }} whileTap={{ scale: 0.95 }} href="#about" onClick={closeMenu} className="hover:text-[#ff6b9d] transition-colors">About</motion.a>
               <motion.div whileHover={{ scale: 1.1, x: 10 }} whileTap={{ scale: 0.95 }}>
                 <Link to="/traits" onClick={closeMenu} className="hover:text-[#ff6b9d] transition-colors">Collection</Link>
+              </motion.div>
+              <motion.div whileHover={{ scale: 1.1, x: 10 }} whileTap={{ scale: 0.95 }}>
+                <Link to="/swap" onClick={closeMenu} className="text-[#ff6b9d] hover:text-white transition-colors">Swap</Link>
               </motion.div>
               <motion.a whileHover={{ scale: 1.1, x: 10 }} whileTap={{ scale: 0.95 }} href="#faq" onClick={closeMenu} className="hover:text-[#ff6b9d] transition-colors">FAQ</motion.a>
               <motion.div whileHover={{ scale: 1.1, x: 10 }} whileTap={{ scale: 0.95 }}>
@@ -672,6 +676,7 @@ export default function Home() {
                 <a href="#top" className="hover:opacity-100 hover:text-[#ff6b9d] hover:translate-x-1 transition-all duration-300 uppercase">Home</a>
                 <a href="#utility" className="hover:opacity-100 hover:text-[#ff6b9d] hover:translate-x-1 transition-all duration-300 uppercase">Utility</a>
                 <Link to="/traits" className="hover:opacity-100 hover:text-[#ff6b9d] hover:translate-x-1 transition-all duration-300 uppercase">Collection Explorer</Link>
+                <Link to="/swap" className="hover:opacity-100 hover:text-[#ff6b9d] hover:translate-x-1 transition-all duration-300 uppercase">Token Swap</Link>
                 <a href="#about" className="hover:opacity-100 hover:text-[#ff6b9d] hover:translate-x-1 transition-all duration-300 uppercase">About</a>
               </nav>
             </div>

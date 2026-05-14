@@ -283,6 +283,9 @@ export default function Game() {
           <Link to="/traits" className="hidden sm:block text-[11px] uppercase font-bold tracking-[0.2em] opacity-50 hover:opacity-100 hover:text-[#ff6b9d] transition-all">
             Traits
           </Link>
+          <Link to="/swap" className="hidden sm:block text-[11px] uppercase font-bold tracking-[0.2em] opacity-50 hover:opacity-100 hover:text-[#ff6b9d] transition-all">
+            Swap
+          </Link>
           <motion.button 
             whileHover={{ scale: 1.2, rotate: 15 }} 
             whileTap={{ scale: 0.9 }}
@@ -371,7 +374,7 @@ export default function Game() {
                           className={`absolute top-full left-1/2 w-52 mt-3 border-2 border-[#ff6b9d]/60 rounded-2xl overflow-hidden shadow-[0_15px_40px_rgba(0,0,0,0.8)] z-[9999] transition-colors duration-500 py-1 ${theme === 'dark' ? 'bg-[#1a1a1a]' : 'bg-white'}`}
                         >
                           {(['EASY', 'MEDIUM', 'HARD'] as const).map((diff) => {
-                            const settings = diff === 'EASY' ? { grid: '4x3', mult: '1x' } : diff === 'MEDIUM' ? { grid: '4x4', mult: '1.5x' } : { grid: '6x4', mult: '2x' };
+                            const settings = diff === 'EASY' ? { grid: '4x3' } : diff === 'MEDIUM' ? { grid: '4x4' } : { grid: '6x4' };
                             return (
                               <li
                                 key={diff}
@@ -442,11 +445,19 @@ export default function Game() {
                       <motion.div 
                         key={card.id} 
                         initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.2 + (i * 0.03), duration: 0.3 }}
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        className={`relative aspect-square transition-all duration-300 will-change-transform ${card.matched ? 'opacity-0 scale-90 pointer-events-none' : 'opacity-100'}`}
+                        animate={{ 
+                          opacity: card.matched ? 0 : 1, 
+                          scale: card.matched ? 0.8 : 1,
+                          y: 0 
+                        }}
+                        transition={{ 
+                          opacity: { duration: 0.4 },
+                          scale: { duration: 0.4 },
+                          y: { delay: 0.2 + (i * 0.03), duration: 0.3 }
+                        }}
+                        whileHover={!card.matched ? { scale: 1.05, y: -5 } : {}}
+                        whileTap={!card.matched ? { scale: 0.95 } : {}}
+                        className={`relative aspect-square will-change-transform ${card.matched ? 'pointer-events-none' : ''}`}
                       >
                         <div className={`w-full h-full cursor-pointer transition-all duration-500 [transform-style:preserve-3d] ${card === choiceOne || card === choiceTwo || card.matched ? '[transform:rotateY(180deg)]' : ''}`}
                           onClick={() => !disabled && !card.matched && card !== choiceOne && handleChoice(card)}
