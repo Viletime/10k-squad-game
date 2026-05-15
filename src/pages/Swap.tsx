@@ -22,12 +22,18 @@ const MONAD_NETWORK = {
   name: 'Monad Mainnet',
   symbol: 'MON',
   rpc: 'https://rpc.monad.xyz', 
-  explorer: 'https://monadvision.com/'
+  explorer: 'https://monadscan.com/'
 };
 
 // Common addresses on Monad Mainnet
 const WMON_ADDRESS = "0x3bd359C1119dA7Da1D913D1C4D2B7c461115433A"; 
-const DEX_ROUTER_ADDRESS = "0x6352a56caadC4F1E25CD6c75970Fa768A3304e64"; // OpenOcean / Test Router
+const USDC_ADDRESS = "0x754704Bc059F8C67012fEd69BC8A327a5aafb603"; // User can also paste custom adress in search
+const DEX_ROUTER_ADDRESS = "0xfe31f71c1b106eac32f1a19239c9a9a72ddfb900"; 
+const QUOTER_ADDRESS = "0x661e93cca42afacb172121ef892830ca3b70f08d";
+
+// Helper for BigInt serialization
+const replacer = (_key: string, value: any) => 
+  typeof value === 'bigint' ? value.toString() : value;
 
 declare global {
   interface Window {
@@ -61,7 +67,7 @@ const INITIAL_TOKENS: Token[] = [
     logo: 'https://raw.githubusercontent.com/tetherto/token-list/master/assets/eth.png',
     balance: '0.00',
     price: 0.03,
-    address: '0x3bd359C1119dA7Da1D913D1C4D2B7c461115433A',
+    address: WMON_ADDRESS,
     decimals: 18
   },
   { 
@@ -70,7 +76,7 @@ const INITIAL_TOKENS: Token[] = [
     logo: 'https://raw.githubusercontent.com/tetherto/token-list/master/assets/usdc.png',
     balance: '0.00',
     price: 1.00,
-    address: '0x754704Bc059F8C67012fEd69BC8A327a5aafb603',
+    address: USDC_ADDRESS,
     decimals: 6
   }
 ];
@@ -120,20 +126,17 @@ export default function Swap() {
         }
       }
 
-      // 2. Try on-chain DEX Router if DexScreener didn't cover everything or failed
-      const provider = window.ethereum ? new ethers.BrowserProvider(window.ethereum) : new ethers.JsonRpcProvider(MONAD_NETWORK.rpc);
-      const router = new ethers.Contract(DEX_ROUTER_ADDRESS, ROUTER_ABI, provider);
-      const usdcAddr = USDC_TOKEN.address;
+      // 2. Try on-chain DEX Quoter if DexScreener didn't cover everything or failed
+      const readProvider = new ethers.JsonRpcProvider(MONAD_NETWORK.rpc);
+      const quoter = new ethers.Contract(QUOTER_ADDRESS, QUOTER_ABI, readProvider);
+      const usdcAddr = USDC_ADDRESS;
 
       await Promise.all(tokens.map(async (token) => {
         // USDC always 1.0
-        if (token.symbol === 'USDC' || token.symbol === 'USDT') {
+        if (token.symbol === 'USDC' || token.symbol === 'USDT' || token.address === USDC_ADDRESS) {
           newPrices[token.symbol] = 1.00;
           return;
         }
-
-        // If we already got a price from DexScreener, skip on-chain for speed (optional)
-        // if (newPrices[token.symbol] !== prices[token.symbol]) return;
 
         const fromAddr = token.address === 'native' ? WMON_ADDRESS : token.address;
         if (!ethers.isAddress(fromAddr)) return;
@@ -141,15 +144,21 @@ export default function Swap() {
         const amountIn = ethers.parseUnits("1", token.decimals || 18);
 
         try {
-          // Try direct path to USDC to get USD price
-          const path = [fromAddr, usdcAddr];
-          const results = await router.getAmountsOut(amountIn, path);
-          const price = parseFloat(ethers.formatUnits(results[results.length - 1], USDC_TOKEN.decimals || 6));
+          // Try direct path to USDC to get USD price using V3 Quoter
+          const params = {
+            tokenIn: fromAddr,
+            tokenOut: usdcAddr,
+            amountIn: amountIn,
+            fee: 3000, 
+            sqrtPriceLimitX96: 0
+          };
+          
+          const quoteResult = await quoter.quoteExactInputSingle.staticCall(params);
+          const price = parseFloat(ethers.formatUnits(quoteResult.amountOut, 6)); // Assuming USDC is 6 decimals
           if (price > 0) newPrices[token.symbol] = price;
         } catch (e) {
           // If no liquidity, we maintain the base price or slightly fluctuate for "live" feel
           const base = token.symbol === 'MON' || token.symbol === 'WMON' ? 0.03 : 1.0;
-          // Add a tiny random fluctuation to show it is "live" and updating even if hardcoded
           const fluctuation = (Math.random() - 0.5) * 0.0001;
           newPrices[token.symbol] = (newPrices[token.symbol] || base) + fluctuation;
         }
@@ -188,6 +197,8 @@ export default function Swap() {
   const [isSwapping, setIsSwapping] = useState(false);
   const [isApproving, setIsApproving] = useState(false);
   const [needsApproval, setNeedsApproval] = useState(false);
+  const [hasLiquidity, setHasLiquidity] = useState(true);
+  const [bestFee, setBestFee] = useState<number>(3000);
   const [showSettings, setShowSettings] = useState(false);
   const [slippage, setSlippage] = useState('0.5');
 
@@ -211,12 +222,14 @@ export default function Swap() {
     "function allowance(address owner, address spender) view returns (uint256)"
   ];
 
-  // Uniswap V2 Router Minimal ABI
+  // Uniswap V3 Router Minimal ABI
   const ROUTER_ABI = [
-    "function getAmountsOut(uint amountIn, address[] calldata path) external view returns (uint[] memory amounts)",
-    "function swapExactTokensForTokens(uint amountIn, uint amountOutMin, address[] calldata path, address to, uint deadline) external returns (uint[] memory amounts)",
-    "function swapExactETHForTokens(uint amountOutMin, address[] calldata path, address to, uint deadline) external payable returns (uint[] memory amounts)",
-    "function swapExactTokensForETH(uint amountIn, uint amountOutMin, address[] calldata path, address to, uint deadline) external returns (uint[] memory amounts)"
+    "function exactInputSingle((address tokenIn, address tokenOut, uint24 fee, address recipient, uint256 amountIn, uint256 amountOutMinimum, uint160 sqrtPriceLimitX96)) external payable returns (uint256 amountOut)"
+  ];
+
+  // Uniswap V3 Quoter Minimal ABI
+  const QUOTER_ABI = [
+    "function quoteExactInputSingle((address tokenIn, address tokenOut, uint256 amountIn, uint24 fee, uint160 sqrtPriceLimitX96)) external returns (uint256 amountOut, uint160 sqrtPriceX96After, uint32 initializedTicksCrossed, uint256 gasEstimate)"
   ];
 
   // Placeholder Router (Update with real Monad DEX address)
@@ -224,8 +237,10 @@ export default function Swap() {
 
   // Fetch Balances
   const fetchBalances = async () => {
-    if (!account || !window.ethereum) return;
-    const provider = new ethers.BrowserProvider(window.ethereum);
+    if (!account) return;
+    
+    // Explicitly use Monad RPC for read actions to avoid network mismatch
+    const readProvider = new ethers.JsonRpcProvider(MONAD_NETWORK.rpc);
     
     const newBalances: Record<string, string> = {};
     
@@ -233,14 +248,20 @@ export default function Swap() {
       await Promise.all(tokens.map(async (token) => {
         try {
           if (token.address === 'native') {
-            const balance = await provider.getBalance(account);
+            const balance = await readProvider.getBalance(account);
             newBalances[token.symbol] = ethers.formatEther(balance);
           } else if (ethers.isAddress(token.address)) {
-            const contract = new ethers.Contract(token.address, ERC20_ABI, provider);
-            const [balance, decimals] = await Promise.all([
-              contract.balanceOf(account),
-              contract.decimals()
-            ]);
+            const contract = new ethers.Contract(token.address, ERC20_ABI, readProvider);
+            
+            let decimals = 18;
+            try {
+              decimals = await contract.decimals();
+            } catch (err) {
+              console.warn(`Could not fetch decimals for ${token.symbol} at ${token.address}, defaulting to 18 (or 6 if USDC).`);
+              if (token.symbol.includes('USDC') || token.symbol.includes('USDT')) decimals = 6;
+            }
+
+            const balance = await contract.balanceOf(account);
             newBalances[token.symbol] = ethers.formatUnits(balance, decimals);
           } else {
             console.warn(`Skipping balance fetch for invalid address: ${token.symbol} (${token.address})`);
@@ -259,7 +280,7 @@ export default function Swap() {
 
   useEffect(() => {
     if (account) fetchBalances();
-  }, [account, tokens]);
+  }, [account, tokens.length]); // Only fetch on account change or new tokens added, not price updates
 
   // Handle Search & Discovery
   const searchResults = tokens.filter(t => 
@@ -267,6 +288,41 @@ export default function Swap() {
     t.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     t.address.toLowerCase() === searchQuery.toLowerCase()
   );
+
+  // Allow adding custom token if search is a valid address and not found
+  const isSearchAddress = ethers.isAddress(searchQuery);
+  const isNewAddress = isSearchAddress && !tokens.some(t => t.address.toLowerCase() === searchQuery.toLowerCase());
+
+  const addCustomToken = async (address: string) => {
+    const readProvider = new ethers.JsonRpcProvider(MONAD_NETWORK.rpc);
+    const contract = new ethers.Contract(address, ERC20_ABI, readProvider);
+    try {
+      const [symbol, name, decimals] = await Promise.all([
+        contract.symbol().catch(() => "UNKNOWN"),
+        contract.name().catch(() => "Unknown Token"),
+        contract.decimals().catch(() => 18)
+      ]);
+      
+      const newToken: Token = {
+        symbol,
+        name,
+        address,
+        decimals: Number(decimals),
+        logo: 'https://raw.githubusercontent.com/tetherto/token-list/master/assets/eth.png',
+        balance: '0.00',
+        price: 0
+      };
+      
+      setTokens(prev => [...prev, newToken]);
+      if (selectingFor === 'from') setFromToken(newToken);
+      else setToToken(newToken);
+      setIsTokenListOpen(false);
+      setSearchQuery('');
+    } catch (err) {
+      console.error("Failed to add custom token:", err);
+      alert("Could not fetch token data. Ensure address is an ERC20 on Monad.");
+    }
+  };
 
   // Check Approval Needs
   useEffect(() => {
@@ -284,8 +340,8 @@ export default function Swap() {
       
       try {
         if (!window.ethereum) return;
-        const provider = new ethers.BrowserProvider(window.ethereum);
-        const contract = new ethers.Contract(fromToken.address, ERC20_ABI, provider);
+        const readProvider = new ethers.JsonRpcProvider(MONAD_NETWORK.rpc);
+        const contract = new ethers.Contract(fromToken.address, ERC20_ABI, readProvider);
         
         const allowance = await contract.allowance(account, DEX_ROUTER_ADDRESS);
         const amountWei = ethers.parseUnits(fromAmount, fromToken.decimals || 18);
@@ -380,11 +436,13 @@ export default function Swap() {
   // Improved Price Calculation using DEX exclusively
   useEffect(() => {
     let active = true;
-    const USDC_ADDRESS = "0x754704Bc059F8C67012fEd69BC8A327a5aafb603";
 
     const updateEstimate = async () => {
       if (!fromAmount || isNaN(parseFloat(fromAmount)) || parseFloat(fromAmount) <= 0) {
-        if (active) setToAmount('');
+        if (active) {
+          setToAmount('');
+          setHasLiquidity(true);
+        }
         return;
       }
 
@@ -396,17 +454,19 @@ export default function Swap() {
         const isUnwrap = fromToken.address === WMON_ADDRESS && toToken.address === 'native';
         
         if (isWrap || isUnwrap) {
-          if (active) setToAmount(fromAmount);
+          if (active) {
+            setToAmount(fromAmount);
+            setHasLiquidity(true);
+          }
           return;
         }
 
-        const provider = new ethers.BrowserProvider(window.ethereum);
-        const router = new ethers.Contract(DEX_ROUTER_ADDRESS, ROUTER_ABI, provider);
+        const readProvider = new ethers.JsonRpcProvider(MONAD_NETWORK.rpc);
+        const quoter = new ethers.Contract(QUOTER_ADDRESS, QUOTER_ABI, readProvider);
         
         const fromAddr = fromToken.address === 'native' ? WMON_ADDRESS : fromToken.address;
         const toAddr = toToken.address === 'native' ? WMON_ADDRESS : toToken.address;
         
-        // Fix: Sanitize input to prevent underflow error
         const decimals = fromToken.decimals || 18;
         let sanitizedAmount = fromAmount;
         if (sanitizedAmount.includes('.')) {
@@ -416,46 +476,36 @@ export default function Swap() {
         
         const amountIn = ethers.parseUnits(sanitizedAmount, decimals);
 
-        // Define possible paths
-        const paths = [
-          [fromAddr, toAddr], // Direct
-          [fromAddr, WMON_ADDRESS, toAddr], // Via WMON
-          [fromAddr, USDC_ADDRESS, toAddr], // Via USDC
-          [fromAddr, WMON_ADDRESS, USDC_ADDRESS, toAddr] // Multi-hop
-        ].filter((p, i, self) => {
-          // Remove invalid segments (e.g. [WMON, WMON]) and duplicates
-          const cleaned = p.filter((addr, idx) => p.indexOf(addr) === idx);
-          if (cleaned.length < 2) return false;
-          return true;
-        });
+        try {
+          // Uniswap V3 Quote: Try common fee tiers
+          const feeTiers = [500, 3000, 10000];
+          let successfulQuote = null;
 
-        let bestAmountOut = BigInt(0);
-
-        for (const path of paths) {
-          try {
-            const results = await router.getAmountsOut(amountIn, path);
-            const amountOut = results[results.length - 1];
-            if (amountOut > bestAmountOut) {
-              bestAmountOut = amountOut;
+          for (const fee of feeTiers) {
+            try {
+              const params = {
+                tokenIn: fromAddr,
+                tokenOut: toAddr,
+                amountIn: amountIn,
+                fee: fee, 
+                sqrtPriceLimitX96: 0
+              };
+              const quoteResult = await quoter.quoteExactInputSingle.staticCall(params);
+              successfulQuote = { amountOut: quoteResult.amountOut, fee };
+              break; 
+            } catch (e) {
+              continue;
             }
-          } catch (e) {
-            // Path not available or no liquidity
           }
-        }
 
-        if (active) {
-          if (bestAmountOut > BigInt(0)) {
-            const formatted = ethers.formatUnits(bestAmountOut, toToken.decimals || 18);
-            // Limit to toToken.decimals to prevent issues
-            const maxDecimals = toToken.decimals || 18;
-            let finalValue = formatted;
-            if (finalValue.includes('.')) {
-              const [intPart, fracPart] = finalValue.split('.');
-              finalValue = `${intPart}.${fracPart.substring(0, Math.min(fracPart.length, 6))}`; // Display max 6 decimals
-            }
-            setToAmount(finalValue);
-          } else {
-            // Fallback to price relative if no liquidity found on chain yet
+          if (active && successfulQuote) {
+            setHasLiquidity(true);
+            setBestFee(successfulQuote.fee);
+            const formatted = ethers.formatUnits(successfulQuote.amountOut, toToken.decimals || 18);
+            setToAmount(formatted);
+          } else if (active) {
+            setHasLiquidity(false);
+            // Fallback to theoretical price index
             const fromPrice = prices[fromToken.symbol] || fromToken.price;
             const toPrice = prices[toToken.symbol] || toToken.price;
             if (fromPrice && toPrice) {
@@ -464,6 +514,12 @@ export default function Swap() {
             } else {
               setToAmount('');
             }
+          }
+        } catch (quoteErr: any) {
+          console.warn("V3 Quoting process failed:", quoteErr.message);
+          if (active) {
+            setHasLiquidity(false);
+            setToAmount('');
           }
         }
       } catch (err) {
@@ -513,11 +569,6 @@ export default function Swap() {
       return;
     }
 
-    if (needsApproval) {
-      handleApprove();
-      return;
-    }
-
     if (!fromAmount || parseFloat(fromAmount) <= 0) return;
     
     // Prevent same token swap
@@ -532,99 +583,124 @@ export default function Swap() {
       const signer = await provider.getSigner();
       
       const decimals = fromToken.decimals || 18;
-      let sanitizedAmount = fromAmount;
-      if (sanitizedAmount.includes('.')) {
-        const [intPart, fracPart] = sanitizedAmount.split('.');
-        sanitizedAmount = `${intPart}.${fracPart.substring(0, decimals)}`;
+      let sanitizedAmountFrom = fromAmount;
+      if (sanitizedAmountFrom.includes('.')) {
+        const [intPart, fracPart] = sanitizedAmountFrom.split('.');
+        sanitizedAmountFrom = `${intPart}.${fracPart.substring(0, decimals)}`;
       }
-      const fromAmountWei = ethers.parseUnits(sanitizedAmount, decimals);
+      const fromAmountWei = ethers.parseUnits(sanitizedAmountFrom, decimals);
 
-      // Case 1: Wrap MON -> WMON
+      // 1. Wrap/Unwrap Handlers (Keep existing logic)
       if (fromToken.address === 'native' && toToken.address === WMON_ADDRESS) {
         console.log("Wrapping MON to WMON...");
         const wmonContract = new ethers.Contract(WMON_ADDRESS, WMON_ABI, signer);
         const tx = await wmonContract.deposit({ value: fromAmountWei });
-        const receipt = await tx.wait();
+        await tx.wait();
         alert(`Successfully wrapped ${fromAmount} MON!`);
         fetchBalances();
         setFromAmount('');
         return;
       }
 
-      // Case 2: Unwrap WMON -> MON
       if (fromToken.address === WMON_ADDRESS && toToken.address === 'native') {
         console.log("Unwrapping WMON to MON...");
         const wmonContract = new ethers.Contract(WMON_ADDRESS, WMON_ABI, signer);
         const tx = await wmonContract.withdraw(fromAmountWei);
-        const receipt = await tx.wait();
+        await tx.wait();
         alert(`Successfully unwrapped ${fromAmount} WMON!`);
         fetchBalances();
         setFromAmount('');
         return;
       }
 
-      // Case 3: Regular Swap using Router
-      if (!DEX_ROUTER_ADDRESS || DEX_ROUTER_ADDRESS.startsWith("0x...") || !ethers.isAddress(DEX_ROUTER_ADDRESS)) {
-        throw new Error("DEX Router address is not set or invalid. Swaps are currently disabled.");
-      }
-
-      const router = new ethers.Contract(DEX_ROUTER_ADDRESS, ROUTER_ABI, signer);
+      // 2. Setup Parameters for Uniswap V3 Swap
       const deadline = Math.floor(Date.now() / 1000) + 60 * 20; 
       
-      const slippageAdjusted = parseFloat(toAmount) * (1 - parseFloat(slippage)/100);
-      const amountOutMin = ethers.parseUnits(slippageAdjusted.toFixed(toToken.decimals || 18), toToken.decimals || 18);
+      // Calculate amountOutMinimum with slippage protection
+      // Use the actual toToken decimals for precision
+      const toDecimals = toToken.decimals || 18;
+      const slippageFactor = 1 - parseFloat(slippage) / 100;
+      const estimatedOutput = parseFloat(toAmount);
+      const slippageAdjusted = estimatedOutput * slippageFactor;
       
-      const path = [
-        fromToken.address === 'native' ? WMON_ADDRESS : fromToken.address,
-        toToken.address === 'native' ? WMON_ADDRESS : toToken.address
-      ];
+      // Use a safer calculation for amountOutMinimum to avoid floating point issues
+      const amountOutMin = ethers.parseUnits(slippageAdjusted.toFixed(toDecimals), toDecimals);
+      
+      const tokenIn = fromToken.address === 'native' ? WMON_ADDRESS : fromToken.address;
+      const tokenOut = toToken.address === 'native' ? WMON_ADDRESS : toToken.address;
 
-      console.log(`Executing Swap via Router ${DEX_ROUTER_ADDRESS}`);
+      // Uniswap V3 ExactInputSingleParams struct
+      // Note: Deadline is often removed in some SwapRouter02 versions or handled differently
+      const swapParams = {
+        tokenIn: tokenIn,
+        tokenOut: tokenOut,
+        fee: bestFee || 3000, 
+        recipient: account,
+        amountIn: fromAmountWei,
+        amountOutMinimum: amountOutMin,
+        sqrtPriceLimitX96: 0 
+      };
+
+      // 3. Approval and Value Strategy
+      let value = BigInt(0);
+      
+      if (fromToken.address === 'native') {
+        // MON -> TOKEN: Attach value, no approval needed for native
+        value = fromAmountWei;
+        console.log("Native MON detected. Attaching value to swap call:", ethers.formatEther(value));
+      } else {
+        // ERC20 -> TOKEN: Mandatory Approval check + wait
+        try {
+          const fromContract = new ethers.Contract(fromToken.address, ERC20_ABI, signer);
+          console.log(`Checking allowance for ${fromToken.symbol}...`);
+          const allowance = await fromContract.allowance(account, DEX_ROUTER_ADDRESS);
+          
+          if (allowance < fromAmountWei) {
+            console.log(`Insufficient allowance (${ethers.formatUnits(allowance, decimals)}). Approving ${fromToken.symbol} for Router...`);
+            setIsApproving(true);
+            const approveTx = await fromContract.approve(DEX_ROUTER_ADDRESS, ethers.MaxUint256);
+            console.log("Approval transaction sent. Waiting for confirmation...");
+            await approveTx.wait();
+            console.log("Approval confirmed.");
+            setIsApproving(false);
+          } else {
+            console.log("Allowance sufficient:", ethers.formatUnits(allowance, decimals));
+          }
+        } catch (approveErr: any) {
+          console.error("Token approval process failed:", approveErr);
+          throw new Error(`Failed to approve ${fromToken.symbol}: ${approveErr.message}`);
+        }
+      }
+
+      // 4. Final Execution
+      const router = new ethers.Contract(DEX_ROUTER_ADDRESS, ROUTER_ABI, signer);
+      console.log(`Executing V3 Swap via Router ${DEX_ROUTER_ADDRESS}`);
+      console.log("Swap Parameters:", JSON.stringify(swapParams, replacer, 2));
+      console.log("Value attached:", value.toString());
       
       let tx;
-      if (fromToken.address === 'native') {
-        tx = await router.swapExactETHForTokens(
-          amountOutMin,
-          path,
-          account,
-          deadline,
-          { value: fromAmountWei }
-        );
-      } else if (toToken.address === 'native') {
-        tx = await router.swapExactTokensForETH(
-          fromAmountWei,
-          amountOutMin,
-          path,
-          account,
-          deadline
-        );
-      } else {
-        tx = await router.swapExactTokensForTokens(
-          fromAmountWei,
-          amountOutMin,
-          path,
-          account,
-          deadline
-        );
+      try {
+        // Use the exact parameters and overrides
+        tx = await router.exactInputSingle(swapParams, { value });
+        console.log("Swap transaction sent:", tx.hash);
+      } catch (swapCallErr: any) {
+        console.error("Uniswap V3 Swap call failed:", swapCallErr);
+        throw new Error(`Transaction failed: ${swapCallErr.reason || swapCallErr.message || "Unknown error."}`);
       }
       
       const receipt = await tx.wait();
-      alert(`Successfully swapped ${fromAmount} ${fromToken.symbol} for ${toAmount} ${toToken.symbol}!`);
+      console.log("Swap Receipt:", JSON.stringify(receipt, replacer, 2));
+      alert(`Successfully swapped ${fromAmount} ${fromToken.symbol} for ~${toAmount} ${toToken.symbol}!`);
       
       fetchBalances();
       setFromAmount('');
     } catch (err: any) {
-      console.error(err);
-      let msg = err.reason || err.message || "Unknown error";
-      
-      // Better error message for common failures
-      if (msg.includes("estimateGas")) {
-        msg = "Transaction failed during simulation. This might be due to low liquidity at the set router address or incorrect path config.";
-      }
-      
+      console.error("CRITICAL SWAP ERROR:", JSON.stringify(err, replacer, 2));
+      const msg = err.reason || err.message || "Unknown error occurred during swap.";
       alert("Transaction failed: " + msg);
     } finally {
       setIsSwapping(false);
+      setIsApproving(false);
     }
   };
 
@@ -831,6 +907,12 @@ export default function Swap() {
                   className="overflow-hidden mt-2"
                 >
                   <div className={`p-5 rounded-3xl space-y-4 ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50/50 border border-black/5'}`}>
+                    {!hasLiquidity && (
+                      <div className="flex items-center gap-2 p-3 rounded-xl bg-orange-500/10 border border-orange-500/20 text-orange-500 mb-2">
+                        <AlertCircle size={14} />
+                        <span className="text-[10px] font-bold">No direct liquidity on DEX. Amount is estimated.</span>
+                      </div>
+                    )}
                     <div className="flex justify-between items-center">
                       <span className="text-[10px] font-black uppercase tracking-widest opacity-40">Exchange Rate</span>
                       <div className="text-[11px] font-black italic">
@@ -879,9 +961,9 @@ export default function Swap() {
             {/* Main Action Button */}
             <button 
               onClick={handleSwapExecute}
-              disabled={isSwapping || isApproving || (account && !fromAmount)}
+              disabled={isSwapping || isApproving || !toAmount || (account && !fromAmount)}
               className={`w-full mt-8 py-5 rounded-[1.5rem] font-black uppercase tracking-[0.1em] text-base transition-all shadow-2xl disabled:opacity-50 disabled:grayscale italic ${
-                isSwapping || isApproving
+                isSwapping || isApproving || !toAmount
                   ? 'bg-white/10' 
                   : 'bg-[#ff6b9d] hover:bg-[#ff85af] text-white shadow-[#ff6b9d]/40'
               }`}
@@ -965,6 +1047,20 @@ export default function Swap() {
               </div>
 
               <div className="space-y-1 max-h-[350px] overflow-y-auto pr-2 custom-scrollbar">
+                {isNewAddress && (
+                  <button
+                    onClick={() => addCustomToken(searchQuery)}
+                    className={`w-full flex items-center justify-between p-5 rounded-2xl transition-all border-2 border-dashed ${theme === 'dark' ? 'border-white/10 hover:bg-white/5' : 'border-black/5 hover:bg-black/5'}`}
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="text-left">
+                        <p className="font-black uppercase text-base tracking-tight italic">Add Custom</p>
+                        <p className="text-[10px] opacity-40 font-bold uppercase tracking-widest">{searchQuery.substring(0, 10)}...{searchQuery.substring(34)}</p>
+                      </div>
+                    </div>
+                    <Check size={20} className="text-[#ff6b9d]" />
+                  </button>
+                )}
                 {searchResults.length > 0 ? (
                   searchResults.map((token) => (
                     <button
