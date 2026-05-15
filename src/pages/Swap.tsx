@@ -51,6 +51,14 @@ interface Token {
   decimals?: number;
 }
 
+interface SuccessData {
+  amountIn: string;
+  symbolIn: string;
+  amountOut: string;
+  symbolOut: string;
+  txHash: string;
+}
+
 const INITIAL_TOKENS: Token[] = [
   { 
     symbol: 'MON', 
@@ -201,6 +209,7 @@ export default function Swap() {
   const [bestFee, setBestFee] = useState<number>(3000);
   const [showSettings, setShowSettings] = useState(false);
   const [slippage, setSlippage] = useState('0.5');
+  const [txReceipt, setTxReceipt] = useState<SuccessData | null>(null);
 
   // WMON Minimal ABI for Wrap/Unwrap
   const WMON_ABI = [
@@ -590,13 +599,21 @@ export default function Swap() {
       }
       const fromAmountWei = ethers.parseUnits(sanitizedAmountFrom, decimals);
 
-      // 1. Wrap/Unwrap Handlers (Keep existing logic)
+      // 1. Wrap/Unwrap Handlers
       if (fromToken.address === 'native' && toToken.address === WMON_ADDRESS) {
         console.log("Wrapping MON to WMON...");
         const wmonContract = new ethers.Contract(WMON_ADDRESS, WMON_ABI, signer);
         const tx = await wmonContract.deposit({ value: fromAmountWei });
         await tx.wait();
-        alert(`Successfully wrapped ${fromAmount} MON!`);
+        
+        setTxReceipt({
+          amountIn: fromAmount,
+          symbolIn: fromToken.symbol,
+          amountOut: fromAmount,
+          symbolOut: toToken.symbol,
+          txHash: tx.hash
+        });
+        
         fetchBalances();
         setFromAmount('');
         return;
@@ -607,7 +624,15 @@ export default function Swap() {
         const wmonContract = new ethers.Contract(WMON_ADDRESS, WMON_ABI, signer);
         const tx = await wmonContract.withdraw(fromAmountWei);
         await tx.wait();
-        alert(`Successfully unwrapped ${fromAmount} WMON!`);
+        
+        setTxReceipt({
+          amountIn: fromAmount,
+          symbolIn: fromToken.symbol,
+          amountOut: fromAmount,
+          symbolOut: toToken.symbol,
+          txHash: tx.hash
+        });
+        
         fetchBalances();
         setFromAmount('');
         return;
@@ -689,8 +714,17 @@ export default function Swap() {
       }
       
       const receipt = await tx.wait();
-      console.log("Swap Receipt:", JSON.stringify(receipt, replacer, 2));
-      alert(`Successfully swapped ${fromAmount} ${fromToken.symbol} for ~${toAmount} ${toToken.symbol}!`);
+      console.log("TX Receipt:", receipt);
+      console.log("TX Hash:", tx.hash);
+      
+      // Show Success Receipt
+      setTxReceipt({
+        amountIn: fromAmount,
+        symbolIn: fromToken.symbol,
+        amountOut: toAmount,
+        symbolOut: toToken.symbol,
+        txHash: tx.hash
+      });
       
       fetchBalances();
       setFromAmount('');
@@ -988,7 +1022,6 @@ export default function Swap() {
               </div>
             </button>
 
-
             {/* Network Notification */}
             <div className={`mt-6 p-4 rounded-3xl border flex items-start gap-4 ${theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-black/5 border-black/10'}`}>
               <AlertCircle size={20} className="text-[#ff6b9d] flex-shrink-0" />
@@ -1157,6 +1190,109 @@ export default function Swap() {
       <footer className="relative z-10 px-6 py-12 text-center opacity-40 pointer-events-none">
         <p className="text-[10px] font-black uppercase tracking-[0.4em]">Optimized for Monad High Speed Throughput</p>
       </footer>
+
+      {/* Success Transaction Modal */}
+      <AnimatePresence>
+        {txReceipt && (
+          <div className="fixed inset-0 z-[10000] flex items-center justify-center p-6">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setTxReceipt(null)}
+              className="absolute inset-0 bg-black/60 backdrop-blur-xl transition-all"
+            />
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              className={`relative w-full max-w-[380px] p-8 rounded-[2.5rem] shadow-2xl border overflow-hidden text-center flex flex-col items-center gap-6 ${
+                theme === 'dark' 
+                  ? 'bg-slate-900/90 backdrop-blur-md border-slate-700/50' 
+                  : 'bg-white/90 backdrop-blur-md border-slate-200'
+              }`}
+            >
+              {/* Shimmer line */}
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#ff6b9d] to-transparent animate-shimmer" />
+              
+              {/* Glowing Success Icon */}
+              <div className="relative group">
+                <div className="absolute inset-0 bg-[#ff6b9d] blur-2xl opacity-20 group-hover:opacity-40 transition-opacity" />
+                <div className="relative w-16 h-16 bg-gradient-to-br from-[#ff6b9d] to-[#ff4d80] rounded-[1.8rem] flex items-center justify-center rotate-12 shadow-[0_0_30px_rgba(255,107,157,0.5)]">
+                  <Check size={32} className="text-white" strokeWidth={4} />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <h3 className={`text-2xl font-black uppercase italic tracking-tighter ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
+                  SWAP SUCCESS!
+                </h3>
+                <p className={`text-[10px] font-bold uppercase tracking-widest opacity-40 ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>
+                  Optimized for Monad Engine
+                </p>
+              </div>
+
+              {/* Summary Area */}
+              <div className={`w-full p-5 rounded-[1.5rem] space-y-4 ${theme === 'dark' ? 'bg-slate-800/50' : 'bg-slate-50'}`}>
+                <div className="flex justify-between items-center text-left">
+                  <div className="space-y-1">
+                    <span className="text-[9px] font-black uppercase tracking-widest opacity-30 block">Sent</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg font-black italic tracking-tight">{txReceipt.amountIn}</span>
+                      <span className="text-[10px] font-bold opacity-40 uppercase">{txReceipt.symbolIn}</span>
+                    </div>
+                  </div>
+                  <div className="p-2 bg-white/5 rounded-xl border border-white/5">
+                    <div className="w-5 h-5 rounded-full bg-gradient-to-br from-[#ff6b9d] to-[#7c3aed] flex items-center justify-center text-[8px] font-black text-white shadow-lg shadow-[#ff6b9d]/20">M</div>
+                  </div>
+                </div>
+
+                <div className="relative flex items-center justify-center">
+                  <div className="absolute w-full h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+                   <div className={`relative p-1.5 rounded-full border ${theme === 'dark' ? 'bg-slate-900 border-slate-700' : 'bg-white border-slate-200'}`}>
+                      <ArrowDownUp size={12} className="text-[#ff6b9d]" />
+                   </div>
+                </div>
+
+                <div className="flex justify-between items-center text-left">
+                  <div className="space-y-1">
+                    <span className="text-[9px] font-black uppercase tracking-widest opacity-30 block">Received</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg font-black italic tracking-tight text-[#ff6b9d]">~{txReceipt.amountOut}</span>
+                      <span className="text-[10px] font-bold opacity-40 uppercase">{txReceipt.symbolOut}</span>
+                    </div>
+                  </div>
+                  <div className="p-2 bg-white/5 rounded-xl border border-white/5">
+                    <div className="w-5 h-5 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-[8px] font-black text-white shadow-lg shadow-blue-500/20">$</div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="w-full space-y-3">
+                <button 
+                  onClick={() => setTxReceipt(null)}
+                  className="w-full py-4 rounded-xl bg-gradient-to-r from-[#ff6b9d] via-[#ff6b9d] to-[#7c3aed] hover:shadow-[0_0_20px_rgba(255,107,157,0.4)] text-white text-[10px] font-black uppercase tracking-widest transition-all scale-100 hover:scale-[1.02] active:scale-[0.98] shadow-lg"
+                >
+                  SWAP MORE TOKENS
+                </button>
+                <a 
+                  href={`https://monadscan.com/tx/${txReceipt.txHash}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className={`w-full py-4 rounded-xl flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest transition-all border ${
+                    theme === 'dark' 
+                      ? 'border-slate-700 text-slate-400 hover:bg-slate-800 hover:text-white' 
+                      : 'border-slate-200 text-slate-500 hover:bg-slate-100 hover:text-slate-900'
+                  }`}
+                >
+                  <ExternalLink size={14} />
+                  View on MonadScan
+                </a>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
