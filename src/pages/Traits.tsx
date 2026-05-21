@@ -1,8 +1,9 @@
 import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Sun as SunIcon, Moon as MoonIcon, Menu, X, Search, Filter, ArrowUpDown, ExternalLink, ChevronDown, RefreshCw, Download, Copy, Check } from 'lucide-react';
+import { Sun as SunIcon, Moon as MoonIcon, Menu, X, Search, Filter, ArrowUpDown, ExternalLink, ChevronDown, RefreshCw, Download, Copy, Check, Wallet } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { FloatingParticles } from '../App';
+import { useWallet } from '../lib/WalletContext';
 
 type Tier = 'Legendary' | 'Rare' | 'Uncommon' | 'Common';
 
@@ -53,6 +54,7 @@ const MOCK_TRAITS: Trait[] = [
 ];
 
 export default function Traits() {
+  const { account, disconnectWallet, setIsModalOpen, isModalOpen, connectWallet } = useWallet();
   const [theme, setTheme] = useState<'light' | 'dark'>('dark');
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -701,7 +703,6 @@ export default function Traits() {
   return (
     <div className={`min-h-screen transition-colors duration-500 overflow-x-hidden scrollbar-hide ${theme === 'dark' ? 'bg-black text-white' : 'bg-white text-black'}`}>
       <FloatingParticles />
-
       {/* HEADER - RESTORED ORIGINAL */}
       <nav className={`fixed top-0 left-0 right-0 z-50 px-6 md:px-10 py-4 transition-all duration-300 border-b flex items-center will-change-transform ${
         isScrolled 
@@ -727,6 +728,25 @@ export default function Traits() {
         </div>
 
         <div className={`flex-1 flex items-center justify-end gap-3 md:gap-6 ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
+          {account ? (
+             <div className={`hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl border border-current/10 bg-current/5`}>
+               <div className="w-2 h-2 rounded-full bg-green-500" />
+               <span className="text-[9px] font-black font-mono">{account.slice(0, 6)}...{account.slice(-4)}</span>
+             </div>
+          ) : (
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setIsModalOpen(true)}
+              className={`hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                theme === 'dark' ? 'bg-white text-black hover:bg-gray-200' : 'bg-black text-white hover:bg-gray-800'
+              }`}
+            >
+              <Wallet size={14} />
+              Connect
+            </motion.button>
+          )}
+
           <motion.button 
             whileHover={{ scale: 1.2, rotate: 15 }} 
             whileTap={{ scale: 0.9 }}

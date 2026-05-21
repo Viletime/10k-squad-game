@@ -16,6 +16,7 @@ export default defineConfig(({mode}) => {
     resolve: {
       alias: {
         '@': path.resolve(__dirname, '.'),
+        'cross-fetch': path.resolve(__dirname, 'src/lib/cross-fetch-shim.ts'),
       },
     },
     server: {

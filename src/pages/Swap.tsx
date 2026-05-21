@@ -11,10 +11,12 @@ import {
   Search,
   Check,
   AlertCircle,
-  Power
+  Power,
+  X
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { ethers } from 'ethers';
+import { useWallet } from '../lib/WalletContext';
 
 // Monad Network Config
 const MONAD_NETWORK = {
@@ -35,11 +37,7 @@ const QUOTER_ADDRESS = "0x661e93cca42afacb172121ef892830ca3b70f08d";
 const replacer = (_key: string, value: any) => 
   typeof value === 'bigint' ? value.toString() : value;
 
-declare global {
-  interface Window {
-    ethereum?: any;
-  }
-}
+
 
 interface Token {
   symbol: string;
@@ -90,12 +88,12 @@ const INITIAL_TOKENS: Token[] = [
 ];
 
 export default function Swap() {
+  const { account, connectWallet, disconnectWallet, isModalOpen, setIsModalOpen } = useWallet();
   const [tokens, setTokens] = useState<Token[]>(INITIAL_TOKENS);
   const [theme, setTheme] = useState<'dark' | 'light'>(() => {
     return document.documentElement.classList.contains('dark') ? 'dark' : 'light';
   });
 
-  const [account, setAccount] = useState<string | null>(null);
   const [balances, setBalances] = useState<Record<string, string>>({});
   // Prices are kept as static fallbacks or derived from USDC pairs where possible
   const [prices, setPrices] = useState<Record<string, number>>({
@@ -348,7 +346,7 @@ export default function Swap() {
       }
       
       try {
-        if (!window.ethereum) return;
+        if (!(window as any).ethereum) return;
         const readProvider = new ethers.JsonRpcProvider(MONAD_NETWORK.rpc);
         const contract = new ethers.Contract(fromToken.address, ERC20_ABI, readProvider);
         
@@ -363,68 +361,11 @@ export default function Swap() {
     checkApproval();
   }, [fromAmount, fromToken, account]);
 
-  // Check if wallet is already connected
-  useEffect(() => {
-    const checkConnection = async () => {
-      if (window.ethereum) {
-        try {
-          const provider = new ethers.BrowserProvider(window.ethereum);
-          const accounts = await provider.listAccounts();
-          if (accounts.length > 0) {
-            setAccount(accounts[0].address);
-          }
-        } catch (err) {
-          console.error(err);
-        }
-      }
-    };
-    checkConnection();
-  }, []);
-
-  const connectWallet = async () => {
-    if (window.ethereum) {
-      try {
-        const provider = new ethers.BrowserProvider(window.ethereum);
-        const accounts = await provider.send("eth_requestAccounts", []);
-        setAccount(accounts[0]);
-        
-        const network = await provider.getNetwork();
-        if (network.chainId !== BigInt(MONAD_NETWORK.chainId)) {
-          try {
-            await window.ethereum.request({
-              method: 'wallet_switchEthereumChain',
-              params: [{ chainId: MONAD_NETWORK.chainId }],
-            });
-          } catch (switchError: any) {
-            if (switchError.code === 4902) {
-              await window.ethereum.request({
-                method: 'wallet_addEthereumChain',
-                params: [
-                  {
-                    chainId: MONAD_NETWORK.chainId,
-                    chainName: MONAD_NETWORK.name,
-                    nativeCurrency: { name: 'Monad', symbol: 'MON', decimals: 18 },
-                    rpcUrls: [MONAD_NETWORK.rpc],
-                    blockExplorerUrls: [MONAD_NETWORK.explorer],
-                  },
-                ],
-              });
-            }
-          }
-        }
-      } catch (error) {
-        console.error("Wallet connection failed", error);
-      }
-    } else {
-      alert('Please install a Web3 wallet (like MetaMask)');
-    }
-  };
-
   const handleApprove = async () => {
-    if (!account || !window.ethereum) return;
+    if (!account || !(window as any).ethereum) return;
     setIsApproving(true);
     try {
-      const provider = new ethers.BrowserProvider(window.ethereum);
+      const provider = new ethers.BrowserProvider((window as any).ethereum as any);
       const signer = await provider.getSigner();
       const contract = new ethers.Contract(fromToken.address, ERC20_ABI, signer);
       
@@ -436,10 +377,6 @@ export default function Swap() {
     } finally {
       setIsApproving(false);
     }
-  };
-
-  const disconnectWallet = () => {
-    setAccount(null);
   };
 
   // Improved Price Calculation using DEX exclusively
@@ -455,7 +392,7 @@ export default function Swap() {
         return;
       }
 
-      if (!window.ethereum) return;
+      if (!(window as any).ethereum) return;
 
       try {
         // Special case: Wrap/Unwrap is always 1:1
@@ -574,7 +511,7 @@ export default function Swap() {
 
   const handleSwapExecute = async () => {
     if (!account) {
-      connectWallet();
+      setIsModalOpen(true);
       return;
     }
 
@@ -588,7 +525,7 @@ export default function Swap() {
 
     setIsSwapping(true);
     try {
-      const provider = new ethers.BrowserProvider(window.ethereum);
+      const provider = new ethers.BrowserProvider((window as any).ethereum as any);
       const signer = await provider.getSigner();
       
       const decimals = fromToken.decimals || 18;
@@ -729,7 +666,7 @@ export default function Swap() {
       fetchBalances();
       setFromAmount('');
     } catch (err: any) {
-      console.error("CRITICAL SWAP ERROR:", JSON.stringify(err, replacer, 2));
+      console.error("CRITICAL SWAP ERROR:", err);
       const msg = err.reason || err.message || "Unknown error occurred during swap.";
       alert("Transaction failed: " + msg);
     } finally {
@@ -773,7 +710,7 @@ export default function Swap() {
               </div>
             ) : (
               <button 
-                onClick={connectWallet}
+                onClick={() => setIsModalOpen(true)}
                 className={`px-5 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg flex items-center gap-2 ${theme === 'dark' ? 'bg-white text-black hover:bg-gray-200' : 'bg-black text-white hover:bg-gray-800'}`}
               >
                 <Wallet size={16} />
@@ -844,18 +781,9 @@ export default function Swap() {
             </div>
 
             {/* Input From */}
-            <div className={`relative p-6 rounded-2xl mb-1 group transition-all ${theme === 'dark' ? 'bg-[#0f172a] border border-white/5' : 'bg-gray-50 border border-black/5'}`}>
-              <div className="flex justify-between items-center mb-4">
-                <button 
-                  onClick={() => handlePercentAmount(100)}
-                  className="text-[9px] font-black uppercase tracking-widest opacity-40 hover:opacity-100 transition-opacity cursor-pointer flex items-center gap-1.5"
-                >
-                  <Wallet size={10} className="text-[#ff6b9d]" />
-                  <span className={theme === 'dark' ? 'text-white' : 'text-black'}>
-                    Balance: {Number(balances[fromToken.symbol] || 0).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 6 })}
-                  </span>
-                </button>
-                <div className="flex gap-2">
+            <div className={`relative p-6 rounded-3xl mb-1 group transition-all duration-300 ${theme === 'dark' ? 'bg-[#0f172a] border border-white/5 hover:border-[#ff6b9d]/30' : 'bg-gray-50 border border-black/5 hover:border-[#ff6b9d]/30'}`}>
+              <div className="flex justify-end mb-4 h-8">
+                <div className="flex gap-1.5 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0">
                   {[25, 50, 75, 100].map(p => (
                     <button 
                       key={p}
@@ -868,7 +796,7 @@ export default function Swap() {
                 </div>
               </div>
 
-              <div className="flex justify-between items-center">
+              <div className="flex justify-between items-start">
                 <div className="flex-1">
                   <input 
                     type="text" 
@@ -878,17 +806,26 @@ export default function Swap() {
                     placeholder="0.0"
                     className="w-full bg-transparent border-none text-4xl font-black focus:ring-0 focus:outline-none placeholder:opacity-20 p-0 leading-tight italic tracking-tighter caret-[#ff6b9d] selection:bg-[#ff6b9d]/20"
                   />
-                  <div className="text-xs font-bold opacity-40 mt-1">
+                  <div className="text-xs font-bold opacity-30 mt-1">
                     ${(parseFloat(fromAmount || '0') * (prices[fromToken.symbol] || fromToken.price)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </div>
                 </div>
-                <button 
-                  onClick={() => { setSelectingFor('from'); setIsTokenListOpen(true); }}
-                  className={`flex items-center gap-2 px-3 py-1.5 rounded-full transition-all shadow-xl font-black text-sm tracking-tight italic ${theme === 'dark' ? 'bg-[#1a273b] hover:bg-[#23334d] text-white' : 'bg-black/5 hover:bg-black/10 text-black'}`}
-                >
-                  <span>{fromToken.symbol}</span>
-                  <ChevronDown size={14} className="opacity-50" />
-                </button>
+                
+                <div className="flex flex-col items-end gap-1.5">
+                  <button 
+                    onClick={() => { setSelectingFor('from'); setIsTokenListOpen(true); }}
+                    className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl transition-all shadow-xl border ${theme === 'dark' ? 'bg-[#1a273b] border-white/5 hover:bg-[#23334d] text-white hover:border-[#ff6b9d]/30' : 'bg-white border-black/5 hover:bg-gray-50 text-black hover:border-[#ff6b9d]/30'}`}
+                  >
+                    <span className="font-black text-base italic tracking-tight uppercase">{fromToken.symbol}</span>
+                    <ChevronDown size={14} className="opacity-40" />
+                  </button>
+                  <button 
+                    onClick={() => handlePercentAmount(100)}
+                    className="text-[11px] font-black italic tracking-tight opacity-30 hover:opacity-100 pr-1 transition-opacity cursor-pointer text-right"
+                  >
+                    {Number(balances[fromToken.symbol] || 0).toLocaleString(undefined, { maximumFractionDigits: 6 })}
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -903,8 +840,9 @@ export default function Swap() {
             </div>
 
             {/* Input To */}
-            <div className={`relative p-6 rounded-2xl mt-1 group transition-all ${theme === 'dark' ? 'bg-[#0f172a] border border-white/5' : 'bg-gray-50 border border-black/5'}`}>
-              <div className="flex justify-between items-center">
+            <div className={`relative p-6 rounded-3xl mt-1 group transition-all duration-300 ${theme === 'dark' ? 'bg-[#0f172a] border border-white/5 hover:border-[#ff6b9d]/30' : 'bg-gray-50 border border-black/5 hover:border-[#ff6b9d]/30'}`}>
+              <div className="h-4 mb-4" /> {/* Spacer */}
+              <div className="flex justify-between items-start">
                 <div className="flex-1">
                   <input 
                     type="text"
@@ -914,20 +852,23 @@ export default function Swap() {
                     placeholder="0.0"
                     className="w-full bg-transparent border-none text-4xl font-black focus:ring-0 focus:outline-none placeholder:opacity-20 p-0 leading-tight italic tracking-tighter caret-[#ff6b9d] selection:bg-[#ff6b9d]/20"
                   />
-                  <div className="text-xs font-bold opacity-40 mt-1">
+                  <div className="text-xs font-bold opacity-30 mt-1">
                     ${(parseFloat(toAmount || '0') * (prices[toToken.symbol] || toToken.price)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </div>
                 </div>
-                <button 
-                  onClick={() => { setSelectingFor('to'); setIsTokenListOpen(true); }}
-                  className={`flex items-center gap-2 px-3 py-1.5 rounded-full transition-all shadow-xl font-black text-sm tracking-tight italic ${theme === 'dark' ? 'bg-[#1a273b] hover:bg-[#23334d] text-white' : 'bg-black/5 hover:bg-black/10 text-black'}`}
-                >
-                  <span>{toToken.symbol}</span>
-                  <ChevronDown size={14} className="opacity-50" />
-                </button>
-              </div>
-              <div className="absolute top-3 right-6 text-[9px] font-black uppercase tracking-widest opacity-40">
-                Balance: {Number(balances[toToken.symbol] || 0).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 6 })}
+
+                <div className="flex flex-col items-end gap-1.5">
+                  <button 
+                    onClick={() => { setSelectingFor('to'); setIsTokenListOpen(true); }}
+                    className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl transition-all shadow-xl border ${theme === 'dark' ? 'bg-[#1a273b] border-white/5 hover:bg-[#23334d] text-white hover:border-[#ff6b9d]/30' : 'bg-white border-black/5 hover:bg-gray-50 text-black hover:border-[#ff6b9d]/30'}`}
+                  >
+                    <span className="font-black text-base italic tracking-tight uppercase">{toToken.symbol}</span>
+                    <ChevronDown size={14} className="opacity-40" />
+                  </button>
+                  <div className="text-[11px] font-black italic tracking-tight opacity-30 pr-1">
+                    {Number(balances[toToken.symbol] || 0).toLocaleString(undefined, { maximumFractionDigits: 6 })}
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -1022,14 +963,7 @@ export default function Swap() {
               </div>
             </button>
 
-            {/* Network Notification */}
-            <div className={`mt-6 p-4 rounded-3xl border flex items-start gap-4 ${theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-black/5 border-black/10'}`}>
-              <AlertCircle size={20} className="text-[#ff6b9d] flex-shrink-0" />
-              <div className="space-y-1">
-                <p className="text-[10px] font-black uppercase tracking-widest text-[#ff6b9d]">Monad Chain Alert</p>
-                <p className="text-[9px] opacity-60 leading-relaxed font-medium">This transaction will take place on the Monad ecosystem. Ensure you are connected to the correct RPC before proceeding.</p>
-              </div>
-            </div>
+
           </div>
         </motion.div>
         </div>
@@ -1191,103 +1125,56 @@ export default function Swap() {
         <p className="text-[10px] font-black uppercase tracking-[0.4em]">Optimized for Monad High Speed Throughput</p>
       </footer>
 
-      {/* Success Transaction Modal */}
+      {/* Success Transaction Notification (Bottom Right) */}
       <AnimatePresence>
         {txReceipt && (
-          <div className="fixed inset-0 z-[10000] flex items-center justify-center p-6">
+          <div className="fixed bottom-8 right-8 z-[10000] flex flex-col items-end pointer-events-none">
             <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setTxReceipt(null)}
-              className="absolute inset-0 bg-black/60 backdrop-blur-xl transition-all"
-            />
-            <motion.div 
-              initial={{ scale: 0.9, opacity: 0, y: 20 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.9, opacity: 0, y: 20 }}
-              className={`relative w-full max-w-[380px] p-8 rounded-[2.5rem] shadow-2xl border overflow-hidden text-center flex flex-col items-center gap-6 ${
-                theme === 'dark' 
-                  ? 'bg-slate-900/90 backdrop-blur-md border-slate-700/50' 
-                  : 'bg-white/90 backdrop-blur-md border-slate-200'
-              }`}
+              initial={{ x: 100, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: 100, opacity: 0 }}
+              className="pointer-events-auto"
             >
-              {/* Shimmer line */}
-              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#ff6b9d] to-transparent animate-shimmer" />
-              
-              {/* Glowing Success Icon */}
-              <div className="relative group">
-                <div className="absolute inset-0 bg-[#ff6b9d] blur-2xl opacity-20 group-hover:opacity-40 transition-opacity" />
-                <div className="relative w-16 h-16 bg-gradient-to-br from-[#ff6b9d] to-[#ff4d80] rounded-[1.8rem] flex items-center justify-center rotate-12 shadow-[0_0_30px_rgba(255,107,157,0.5)]">
-                  <Check size={32} className="text-white" strokeWidth={4} />
+              <div className={`relative flex items-center gap-4 p-4 pr-12 rounded-3xl shadow-2xl border backdrop-blur-xl ${
+                theme === 'dark' 
+                  ? 'bg-slate-900/90 border-slate-700/50 text-white' 
+                  : 'bg-white/90 border-slate-200 text-slate-900'
+              }`}>
+                {/* Shimmer top line */}
+                <div className="absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-[#ff6b9d] to-transparent animate-shimmer" />
+
+                {/* Status Dot */}
+                <div className="relative flex-shrink-0">
+                  <div className="absolute inset-0 bg-[#ff6b9d] blur-lg opacity-40 animate-pulse" />
+                  <div className="relative w-10 h-10 bg-gradient-to-br from-[#ff6b9d] to-[#ff4d80] rounded-2xl flex items-center justify-center shadow-lg shadow-[#ff6b9d]/30">
+                    <Check size={20} className="text-white" strokeWidth={3} />
+                  </div>
                 </div>
-              </div>
 
-              <div className="space-y-2">
-                <h3 className={`text-2xl font-black uppercase italic tracking-tighter ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
-                  SWAP SUCCESS!
-                </h3>
-                <p className={`text-[10px] font-bold uppercase tracking-widest opacity-40 ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>
-                  Optimized for Monad Engine
-                </p>
-              </div>
-
-              {/* Summary Area */}
-              <div className={`w-full p-5 rounded-[1.5rem] space-y-4 ${theme === 'dark' ? 'bg-slate-800/50' : 'bg-slate-50'}`}>
-                <div className="flex justify-between items-center text-left">
-                  <div className="space-y-1">
-                    <span className="text-[9px] font-black uppercase tracking-widest opacity-30 block">Sent</span>
-                    <div className="flex items-center gap-2">
-                      <span className="text-lg font-black italic tracking-tight">{txReceipt.amountIn}</span>
-                      <span className="text-[10px] font-bold opacity-40 uppercase">{txReceipt.symbolIn}</span>
+                <div className="flex flex-col min-w-[180px]">
+                  <p className="text-[10px] font-black uppercase tracking-widest opacity-40 mb-1">Swap Successful</p>
+                  <a 
+                    href={txReceipt.txHash ? `https://monadscan.com/tx/${txReceipt.txHash}` : "#"}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="group"
+                  >
+                    <div className="flex items-center gap-1.5 hover:text-[#ff6b9d] transition-colors">
+                      <span className="text-sm font-black italic tracking-tight">
+                        {txReceipt.amountIn || '0'} {txReceipt.symbolIn || ''} → {txReceipt.amountOut || '0'} {txReceipt.symbolOut || ''}
+                      </span>
+                      <ExternalLink size={12} className="opacity-40 group-hover:opacity-100" />
                     </div>
-                  </div>
-                  <div className="p-2 bg-white/5 rounded-xl border border-white/5">
-                    <div className="w-5 h-5 rounded-full bg-gradient-to-br from-[#ff6b9d] to-[#7c3aed] flex items-center justify-center text-[8px] font-black text-white shadow-lg shadow-[#ff6b9d]/20">M</div>
-                  </div>
+                  </a>
                 </div>
 
-                <div className="relative flex items-center justify-center">
-                  <div className="absolute w-full h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-                   <div className={`relative p-1.5 rounded-full border ${theme === 'dark' ? 'bg-slate-900 border-slate-700' : 'bg-white border-slate-200'}`}>
-                      <ArrowDownUp size={12} className="text-[#ff6b9d]" />
-                   </div>
-                </div>
-
-                <div className="flex justify-between items-center text-left">
-                  <div className="space-y-1">
-                    <span className="text-[9px] font-black uppercase tracking-widest opacity-30 block">Received</span>
-                    <div className="flex items-center gap-2">
-                      <span className="text-lg font-black italic tracking-tight text-[#ff6b9d]">~{txReceipt.amountOut}</span>
-                      <span className="text-[10px] font-bold opacity-40 uppercase">{txReceipt.symbolOut}</span>
-                    </div>
-                  </div>
-                  <div className="p-2 bg-white/5 rounded-xl border border-white/5">
-                    <div className="w-5 h-5 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-[8px] font-black text-white shadow-lg shadow-blue-500/20">$</div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="w-full space-y-3">
+                {/* Close Button */}
                 <button 
                   onClick={() => setTxReceipt(null)}
-                  className="w-full py-4 rounded-xl bg-gradient-to-r from-[#ff6b9d] via-[#ff6b9d] to-[#7c3aed] hover:shadow-[0_0_20px_rgba(255,107,157,0.4)] text-white text-[10px] font-black uppercase tracking-widest transition-all scale-100 hover:scale-[1.02] active:scale-[0.98] shadow-lg"
+                  className={`absolute top-2 right-2 p-1.5 rounded-xl hover:bg-[#ff6b9d]/10 hover:text-[#ff6b9d] transition-all opacity-40 hover:opacity-100`}
                 >
-                  SWAP MORE TOKENS
+                  <X size={14} strokeWidth={3} />
                 </button>
-                <a 
-                  href={`https://monadscan.com/tx/${txReceipt.txHash}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className={`w-full py-4 rounded-xl flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest transition-all border ${
-                    theme === 'dark' 
-                      ? 'border-slate-700 text-slate-400 hover:bg-slate-800 hover:text-white' 
-                      : 'border-slate-200 text-slate-500 hover:bg-slate-100 hover:text-slate-900'
-                  }`}
-                >
-                  <ExternalLink size={14} />
-                  View on MonadScan
-                </a>
               </div>
             </motion.div>
           </div>

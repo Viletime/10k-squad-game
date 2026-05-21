@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Sun as SunIcon, Moon as MoonIcon, Menu, X, ExternalLink, Globe } from 'lucide-react';
+import { Sun as SunIcon, Moon as MoonIcon, Menu, X, ExternalLink, Globe, Wallet } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { FloatingParticles, TransparentLogo, Marquee } from '../App';
+import { useWallet } from '../lib/WalletContext';
 
 export default function Home() {
+  const { account, disconnectWallet, setIsModalOpen, isModalOpen, connectWallet } = useWallet();
   const [theme, setTheme] = useState<'light' | 'dark'>('dark');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
@@ -75,10 +77,11 @@ export default function Home() {
   /* Stats: update weekly */
   const [nftStats, setNftStats] = useState({
     totalSupply: "3,333",
-    holders: "1,100+",
-    floorPrice: "1,579.12",
-    totalVolume: "777K+ MON",
-    volumeUsd: "$23K+"
+    holders: "1,450+",
+    floorPrice: "2,850.15",
+    totalVolume: "1.2M+ MON",
+    volumeUsd: "$45.8K+",
+    isLive: false
   });
   const [isStatsLoading, setIsStatsLoading] = useState(true);
 
@@ -93,8 +96,13 @@ export default function Home() {
             holders: data.holders?.toLocaleString() || "1,100+",
             floorPrice: typeof data.floorPrice === 'number' ? data.floorPrice.toFixed(2) : "1,579.12",
             totalVolume: typeof data.totalVolume === 'number' ? 
-              (data.totalVolume > 1000 ? (data.totalVolume / 1000).toFixed(0) + "K+ MON" : data.totalVolume.toString() + "+ MON") : "777K+ MON",
-            volumeUsd: data.volumeUsd || "$23K+"
+              (data.totalVolume >= 1000000 ? 
+                (data.totalVolume / 1000000).toFixed(2) + "M+ MON" :
+                (data.totalVolume >= 1000 ? 
+                  (data.totalVolume / 1000 >= 10 ? (data.totalVolume / 1000).toFixed(0) : (data.totalVolume / 1000).toFixed(1)) + "K+ MON" : 
+                  data.totalVolume.toFixed(2) + " MON")) : "1.2M+ MON",
+            volumeUsd: data.volumeUsd || "$45.8K+",
+            isLive: !data._isMock
           });
         }
         setIsStatsLoading(false);
@@ -131,7 +139,6 @@ export default function Home() {
   return (
     <div id="top" className={`min-h-screen relative transition-colors duration-500 selection:bg-purple-200 selection:text-purple-900 overflow-x-hidden scrollbar-hide ${theme === 'dark' ? 'bg-black text-white' : 'bg-white text-black'}`}>
       <FloatingParticles />
-      
       {/* HEADER */}
       <nav className={`fixed top-0 left-0 right-0 z-50 px-6 md:px-10 py-4 transition-all duration-300 border-b flex items-center will-change-transform ${
         isScrolled 
@@ -158,6 +165,25 @@ export default function Home() {
 
         {/* RIGHT PART: TOGGLE */}
         <div className={`flex-1 flex items-center justify-end gap-3 md:gap-6 ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
+          {account ? (
+             <div className={`hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl border border-current/10 bg-current/5`}>
+               <div className="w-2 h-2 rounded-full bg-green-500" />
+               <span className="text-[9px] font-black font-mono">{account.slice(0, 6)}...{account.slice(-4)}</span>
+             </div>
+          ) : (
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setIsModalOpen(true)}
+              className={`hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                theme === 'dark' ? 'bg-white text-black hover:bg-gray-200' : 'bg-black text-white hover:bg-gray-800'
+              }`}
+            >
+              <Wallet size={14} />
+              Connect
+            </motion.button>
+          )}
+
           <motion.button 
             whileHover={{ scale: 1.2, rotate: 15 }} 
             whileTap={{ scale: 0.9 }}
@@ -345,10 +371,13 @@ export default function Home() {
                 i % 2 === 0 ? 'border-r border-[#333333] md:border-r' : 'md:border-r border-[#333333]' 
               } last:border-none`}
             >
-              <div className={`text-xl sm:text-2xl md:text-[1.8rem] font-bold tracking-tight mb-1 transition-all duration-500 ${
+              <div className={`text-xl sm:text-2xl md:text-[1.8rem] font-bold tracking-tight mb-1 transition-all duration-500 flex items-center justify-center gap-2 ${
                 isStatsLoading ? 'opacity-30 blur-[2px]' : 'opacity-100'
               } ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
                 {stat.value}
+                {i === 3 && nftStats.isLive && (
+                  <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                )}
               </div>
               <div className="text-[10px] sm:text-[0.75rem] font-normal uppercase tracking-[0.1em] text-[#777777] group-hover:text-current transition-colors duration-300">
                 {stat.label}

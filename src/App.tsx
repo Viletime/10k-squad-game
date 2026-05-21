@@ -166,6 +166,7 @@ import Home from './pages/Home';
 import Game from './pages/Game';
 import Traits from './pages/Traits';
 import Swap from './pages/Swap';
+import { WalletProvider } from './lib/WalletContext';
 
 const ScrollToTop = () => {
   const { pathname } = useLocation();
@@ -179,14 +180,16 @@ const ScrollToTop = () => {
 
 export default function App() {
   return (
-    <Router>
-      <ScrollToTop />
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/game" element={<Game />} />
-        <Route path="/traits" element={<Traits />} />
-        <Route path="/swap" element={<Swap />} />
-      </Routes>
-    </Router>
+    <WalletProvider>
+      <Router>
+        <ScrollToTop />
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/game" element={<Game />} />
+          <Route path="/traits" element={<Traits />} />
+          <Route path="/swap" element={<Swap />} />
+        </Routes>
+      </Router>
+    </WalletProvider>
   );
 }

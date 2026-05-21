@@ -1,13 +1,15 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { FloatingParticles } from '../App';
-import { Volume2, VolumeX, ArrowLeft, Play, Trophy, Users, Zap, Sun as SunIcon, Moon as MoonIcon } from 'lucide-react';
+import { Volume2, VolumeX, ArrowLeft, Play, Trophy, Users, Zap, Sun as SunIcon, Moon as MoonIcon, Wallet } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { db, ensureAuth, handleFirestoreError, OperationType } from '../lib/firebase';
+import { useWallet } from '../lib/WalletContext';
 import { collection, addDoc, query, orderBy, limit, getDocs, serverTimestamp } from 'firebase/firestore';
 import { playFlipSound, playSuccessSound, playErrorSound, playVictorySound, getMuted, setMuted as saveMutePreference } from '../lib/sounds';
 
 export default function Game() {
+  const { account, disconnectWallet, setIsModalOpen, isModalOpen, connectWallet } = useWallet();
   const [theme, setTheme] = useState<'light' | 'dark'>('dark');
   const [isMuted, setIsMuted] = useState(getMuted());
   const [isPlaying, setIsPlaying] = useState(true);
@@ -268,7 +270,6 @@ export default function Game() {
   return (
     <div className={`min-h-screen relative transition-colors duration-500 overflow-x-hidden ${theme === 'dark' ? 'bg-black text-white' : 'bg-white text-black'}`}>
       <FloatingParticles />
-      
       {/* NAV */}
       <nav className={`fixed top-0 left-0 right-0 z-50 px-6 md:px-10 py-4 transition-all duration-300 border-b flex justify-between items-center ${
         isScrolled 
@@ -280,6 +281,25 @@ export default function Game() {
           <span className="text-xl font-black uppercase italic tracking-tighter">BACK TO SQUAD</span>
         </Link>
         <div className={`flex items-center gap-6 ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
+          {account ? (
+             <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl border border-current/10 bg-current/5">
+               <div className="w-2 h-2 rounded-full bg-green-500" />
+               <span className="text-[9px] font-black font-mono">{account.slice(0, 6)}...{account.slice(-4)}</span>
+             </div>
+          ) : (
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setIsModalOpen(true)}
+              className={`hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                theme === 'dark' ? 'bg-white text-black hover:bg-gray-200' : 'bg-black text-white hover:bg-gray-800'
+              }`}
+            >
+              <Wallet size={14} />
+              Connect
+            </motion.button>
+          )}
+
           <Link to="/traits" className="hidden sm:block text-[11px] uppercase font-bold tracking-[0.2em] opacity-50 hover:opacity-100 hover:text-[#ff6b9d] transition-all">
             Traits
           </Link>
@@ -601,7 +621,7 @@ export default function Game() {
 
                   <div className="flex gap-3 w-full mt-4">
                     <motion.button 
-                      whileHover={{ scale: 1.05, bg: "#ff6b9d", boxShadow: "0 0 25px rgba(255, 107, 157, 0.5)" }}
+                      whileHover={{ scale: 1.05, backgroundColor: "#ff6b9d", boxShadow: "0 0 25px rgba(255, 107, 157, 0.5)" }}
                       whileTap={{ scale: 0.95 }}
                       onClick={() => shuffleCards()}
                       className="flex-1 py-4 bg-[#ff6b9d] text-white rounded-[15px] font-black uppercase text-xs tracking-widest transition-all shadow-xl"
