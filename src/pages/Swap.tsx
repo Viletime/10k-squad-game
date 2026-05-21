@@ -12,7 +12,8 @@ import {
   Check,
   AlertCircle,
   Power,
-  X
+  X,
+  Menu
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { ethers } from 'ethers';
@@ -93,6 +94,10 @@ export default function Swap() {
   const [theme, setTheme] = useState<'dark' | 'light'>(() => {
     return document.documentElement.classList.contains('dark') ? 'dark' : 'light';
   });
+  
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const toggleMenu = () => setIsMenuOpen(prev => !prev);
+  const closeMenu = () => setIsMenuOpen(false);
 
   const [balances, setBalances] = useState<Record<string, string>>({});
   // Prices are kept as static fallbacks or derived from USDC pairs where possible
@@ -695,35 +700,79 @@ export default function Swap() {
             </span>
           </Link>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3 sm:gap-4">
             {account ? (
               <div className="flex items-center gap-2">
-                <div className={`px-4 py-2.5 rounded-2xl border flex items-center gap-3 ${theme === 'dark' ? 'bg-white/5 border-white/10 text-white' : 'bg-white border-black/10 text-black'}`}>
-                  <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-[#ff6b9d] to-purple-600" />
-                  <span className="text-[11px] font-bold font-mono">
+                <div className={`px-3 py-2 sm:px-4 sm:py-2.5 rounded-2xl border flex items-center gap-2 sm:gap-3 ${theme === 'dark' ? 'bg-white/5 border-white/10 text-white' : 'bg-white border-black/10 text-black'}`}>
+                  <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-gradient-to-tr from-[#ff6b9d] to-purple-600" />
+                  <span className="text-[9px] sm:text-[11px] font-bold font-mono">
                     {account.substring(0, 6)}...{account.substring(account.length - 4)}
                   </span>
                   <button onClick={disconnectWallet} className="opacity-40 hover:opacity-100 transition-opacity">
-                    <Power size={14} className="text-red-400" />
+                    <Power size={12} className="text-red-400 sm:w-3.5 sm:h-3.5" />
                   </button>
                 </div>
               </div>
             ) : (
               <button 
                 onClick={() => setIsModalOpen(true)}
-                className={`px-5 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg flex items-center gap-2 ${theme === 'dark' ? 'bg-white text-black hover:bg-gray-200' : 'bg-black text-white hover:bg-gray-800'}`}
+                className={`hidden sm:flex px-5 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg items-center gap-2 ${theme === 'dark' ? 'bg-white text-black hover:bg-gray-200' : 'bg-black text-white hover:bg-gray-800'}`}
               >
                 <Wallet size={16} />
                 Connect Wallet
               </button>
             )}
 
-            <Link to="/" className={`px-5 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all border ${theme === 'dark' ? 'bg-white/5 border-white/10 hover:bg-white/10' : 'bg-black/5 border-black/10 hover:bg-black/10'}`}>
+            <Link to="/" className={`hidden sm:flex px-5 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all border ${theme === 'dark' ? 'bg-white/5 border-white/10 hover:bg-white/10' : 'bg-black/5 border-black/10 hover:bg-black/10'}`}>
               Back
             </Link>
+
+            {/* MOBILE MENU BUTTON */}
+            <motion.button 
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              onClick={toggleMenu} 
+              className="sm:hidden opacity-50 hover:opacity-100 transition-all p-2"
+            >
+              {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+            </motion.button>
           </div>
         </div>
       </nav>
+
+      {/* MOBILE MENU OVERLAY */}
+      <AnimatePresence>
+        {isMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="fixed inset-0 z-[40] pt-[100px] bg-[#0a0a0a] flex flex-col items-center justify-start gap-8 p-10 text-white sm:hidden"
+          >
+            <nav className="flex flex-col items-center gap-8 text-xl uppercase font-black italic tracking-widest text-center">
+              <Link to="/" onClick={closeMenu} className="hover:text-[#ff6b9d]">Home</Link>
+              <Link to="/traits" onClick={closeMenu} className="hover:text-[#ff6b9d]">Collection</Link>
+              <Link to="/swap" onClick={closeMenu} className="text-[#ff6b9d]">Swap</Link>
+              <Link to="/game" onClick={closeMenu} className="hover:text-[#ff6b9d]">Play</Link>
+              
+              {!account && (
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => {
+                    setIsModalOpen(true);
+                    closeMenu();
+                  }}
+                  className="mt-8 flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-black uppercase tracking-widest bg-white text-black hover:bg-gray-200"
+                >
+                  <Wallet size={18} />
+                  Connect Wallet
+                </motion.button>
+              )}
+            </nav>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Main Swap Card */}
       <main className="relative z-10 px-6 pt-52 pb-24 flex flex-col items-center">

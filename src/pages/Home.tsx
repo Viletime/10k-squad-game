@@ -449,6 +449,8 @@ export default function Home() {
                 <img 
                   src={item.bg} 
                   alt="" 
+                  loading="lazy"
+                  decoding="async"
                   onError={(e) => {
                     (e.target as HTMLImageElement).src = fallbacks[item.label] || "https://images.unsplash.com/photo-1614850523296-e811ca9fd093?w=800&q=80";
                   }}

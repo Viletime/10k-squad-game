@@ -162,11 +162,14 @@ export const Marquee = ({ items, reverse = false, theme }: { items: string[], re
 
 // --- ROUTING ---
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
-import Home from './pages/Home';
-import Game from './pages/Game';
-import Traits from './pages/Traits';
-import Swap from './pages/Swap';
+import React, { Suspense } from 'react';
 import { WalletProvider } from './lib/WalletContext';
+
+// Lazy loaded pages
+const Home = React.lazy(() => import('./pages/Home'));
+const Game = React.lazy(() => import('./pages/Game'));
+const Traits = React.lazy(() => import('./pages/Traits'));
+const Swap = React.lazy(() => import('./pages/Swap'));
 
 const ScrollToTop = () => {
   const { pathname } = useLocation();
@@ -178,17 +181,29 @@ const ScrollToTop = () => {
   return null;
 };
 
+// Loading fallback
+const PageLoader = () => (
+  <div className="min-h-screen flex items-center justify-center bg-black">
+    <div className="animate-pulse flex flex-col items-center">
+      <div className="w-12 h-12 border-4 border-[#ff6b9d] border-t-transparent rounded-full animate-spin"></div>
+      <p className="mt-4 text-[#ff6b9d] font-mono text-sm tracking-widest uppercase">Loading</p>
+    </div>
+  </div>
+);
+
 export default function App() {
   return (
     <WalletProvider>
       <Router>
         <ScrollToTop />
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/game" element={<Game />} />
-          <Route path="/traits" element={<Traits />} />
-          <Route path="/swap" element={<Swap />} />
-        </Routes>
+        <Suspense fallback={<PageLoader />}>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/game" element={<Game />} />
+            <Route path="/traits" element={<Traits />} />
+            <Route path="/swap" element={<Swap />} />
+          </Routes>
+        </Suspense>
       </Router>
     </WalletProvider>
   );

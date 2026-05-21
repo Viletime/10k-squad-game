@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { FloatingParticles } from '../App';
-import { Volume2, VolumeX, ArrowLeft, Play, Trophy, Users, Zap, Sun as SunIcon, Moon as MoonIcon, Wallet } from 'lucide-react';
+import { Volume2, VolumeX, ArrowLeft, Play, Trophy, Users, Zap, Sun as SunIcon, Moon as MoonIcon, Wallet, Menu, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { db, ensureAuth, handleFirestoreError, OperationType } from '../lib/firebase';
 import { useWallet } from '../lib/WalletContext';
@@ -30,6 +30,10 @@ export default function Game() {
 
   const [isScrolled, setIsScrolled] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  
+  const toggleMenu = () => setIsMenuOpen(prev => !prev);
+  const closeMenu = () => setIsMenuOpen(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -280,7 +284,7 @@ export default function Game() {
           <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
           <span className="text-xl font-black uppercase italic tracking-tighter">BACK TO SQUAD</span>
         </Link>
-        <div className={`flex items-center gap-6 ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
+        <div className={`flex items-center gap-3 sm:gap-6 ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
           {account ? (
              <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl border border-current/10 bg-current/5">
                <div className="w-2 h-2 rounded-full bg-green-500" />
@@ -301,7 +305,7 @@ export default function Game() {
           )}
 
           <Link to="/traits" className="hidden sm:block text-[11px] uppercase font-bold tracking-[0.2em] opacity-50 hover:opacity-100 hover:text-[#ff6b9d] transition-all">
-            Traits
+            Collection
           </Link>
           <Link to="/swap" className="hidden sm:block text-[11px] uppercase font-bold tracking-[0.2em] opacity-50 hover:opacity-100 hover:text-[#ff6b9d] transition-all">
             Swap
@@ -314,8 +318,49 @@ export default function Game() {
           >
             {theme === 'light' ? <MoonIcon size={20} /> : <SunIcon size={20} />}
           </motion.button>
+
+          {/* MOBILE MENU BUTTON */}
+          <motion.button 
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={toggleMenu} 
+            className="sm:hidden opacity-50 hover:opacity-100 hover:text-[#ff6b9d] transition-all duration-300 cursor-pointer p-2"
+          >
+            {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          </motion.button>
         </div>
       </nav>
+
+      {/* MOBILE MENU OVERLAY */}
+      <AnimatePresence>
+        {isMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="fixed inset-0 z-[40] pt-[100px] bg-black flex flex-col items-center justify-start gap-8 p-10 text-white sm:hidden"
+          >
+            <nav className="flex flex-col items-center gap-8 text-xl uppercase font-black italic tracking-widest text-center">
+              <Link to="/#top" onClick={closeMenu} className="hover:text-[#ff6b9d]">Home</Link>
+              <Link to="/traits" onClick={closeMenu} className="hover:text-[#ff6b9d]">Collection</Link>
+              <Link to="/swap" onClick={closeMenu} className="hover:text-[#ff6b9d]">Swap</Link>
+              <Link to="/game" onClick={closeMenu} className="text-[#ff6b9d]">Play</Link>
+              
+              {!account && (
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setIsModalOpen(true)}
+                  className="mt-8 flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-black uppercase tracking-widest bg-white text-black hover:bg-gray-200"
+                >
+                  <Wallet size={18} />
+                  Connect Wallet
+                </motion.button>
+              )}
+            </nav>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <main className="pt-28 pb-20 px-6 max-w-6xl mx-auto flex flex-col items-center text-center">
         <motion.div
