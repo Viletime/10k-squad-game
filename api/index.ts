@@ -309,6 +309,10 @@ if (process.env.NODE_ENV !== "production" && !process.env.VERCEL) {
   const distPath = path.join(process.cwd(), 'dist');
   app.use(express.static(distPath));
   
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(distPath, 'index.html'));
+  });
+  
   // No need to app.listen() here on Vercel, we export the app
   if (!process.env.VERCEL) {
     const PORT = Number(process.env.PORT) || 3000;

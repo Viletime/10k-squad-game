@@ -3,10 +3,17 @@ import { motion, AnimatePresence } from 'motion/react';
 import { FloatingParticles } from '../App';
 import { Volume2, VolumeX, ArrowLeft, Play, Trophy, Users, Zap, Sun as SunIcon, Moon as MoonIcon, Wallet, Menu, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { db, ensureAuth, handleFirestoreError, OperationType } from '../lib/firebase';
+import { ethers } from 'ethers';
 import { useWallet } from '../lib/WalletContext';
-import { collection, addDoc, query, orderBy, limit, getDocs, serverTimestamp } from 'firebase/firestore';
 import { playFlipSound, playSuccessSound, playErrorSound, playVictorySound, getMuted, setMuted as saveMutePreference } from '../lib/sounds';
+
+const GAME_CONTRACT_ADDRESS = "0xAe2CA5D3A67D5096743e6e336f0ad001762fE7f3";
+const GAME_CONTRACT_ABI = [
+  // Assuming you created a function like this to save
+  "function saveScore(string playerName, uint256 score, string difficulty, uint256 time) public",
+  // And a function to get the leaderboard, if it exists
+  "function getTopScores() public view returns (tuple(string playerName, uint256 score, string difficulty, uint256 time)[])"
+];
 
 export default function Game() {
   const { account, disconnectWallet, setIsModalOpen, isModalOpen, connectWallet } = useWallet();
@@ -205,23 +212,26 @@ export default function Game() {
   useEffect(() => {
     const fetchLeaderboard = async () => {
       try {
-        const q = query(
-          collection(db, 'leaderboard'),
-          orderBy('score', 'desc'),
-          limit(10)
-        );
-        const querySnapshot = await getDocs(q);
-        const scores = querySnapshot.docs.map((doc, i) => {
-          const data = doc.data();
-          return {
+        if (!(window as any).ethereum) return;
+        
+        const provider = new ethers.BrowserProvider((window as any).ethereum);
+        const contract = new ethers.Contract(GAME_CONTRACT_ADDRESS, GAME_CONTRACT_ABI, provider);
+        
+        try {
+          // Try to read from the contract if the getTopScores function exists
+          const scoresData = await contract.getTopScores();
+          const formattedScores = scoresData.map((item: any, i: number) => ({
             rank: i + 1,
-            player: data.name,
-            time: data.time,
-            diff: data.difficulty,
-            score: data.score
-          };
-        });
-        setLeaderboard(scores);
+            player: item.playerName,
+            time: Number(item.time),
+            diff: item.difficulty,
+            score: Number(item.score)
+          }));
+          setLeaderboard(formattedScores);
+        } catch (contractErr) {
+          console.warn("Contract might not have getTopScores(), using mock fallback for now.", contractErr);
+          setLeaderboard(mockLeaderboard);
+        }
       } catch (error) {
         console.error("Error fetching leaderboard:", error);
       }
@@ -245,29 +255,47 @@ export default function Game() {
       setTimeout(() => setMsg(''), 2000);
       return;
     }
+    
+    if (!account) {
+      setMsg('Connect your wallet in the Navbar first!');
+      setTimeout(() => setMsg(''), 2000);
+      setIsModalOpen(true);
+      return;
+    }
 
     setIsSaving(true);
     setSaveError('');
 
     try {
-      // The rules are set up to allow public creation with validation, 
-      // so we don't strictly need to ensureAuth() here which might hang if not configured.
-      const scoreData = {
-        name: playerName.trim(),
-        score: Math.floor(finalScore),
-        difficulty: difficulty,
-        time: time,
-        moves: turns,
-        createdAt: serverTimestamp()
-      };
-
-      await addDoc(collection(db, 'leaderboard'), scoreData);
+      if (!(window as any).ethereum) throw new Error("No Web3 wallet found. Please install a wallet.");
+      
+      const provider = new ethers.BrowserProvider((window as any).ethereum);
+      const signer = await provider.getSigner();
+      const contract = new ethers.Contract(GAME_CONTRACT_ADDRESS, GAME_CONTRACT_ABI, signer);
+      
+      // Calling the contract function to save the score on the blockchain!
+      const tx = await contract.saveScore(
+        playerName.trim(), 
+        BigInt(Math.floor(finalScore)), 
+        difficulty, 
+        BigInt(time)
+      );
+      
+      setMsg('Saving to blockchain... Please wait');
+      await tx.wait(); // Wait for the transaction to be mined
+      
       setIsSaving(false);
       setShowLeaderboardScreen(true);
-    } catch (error) {
+      setMsg('');
+    } catch (error: any) {
+      console.error("Error saving to Ethereum contract", error);
       setIsSaving(false);
-      setSaveError('Error saving. Try again!');
-      handleFirestoreError(error, OperationType.CREATE, 'leaderboard');
+      
+      if (error.code === 'ACTION_REJECTED') {
+        setSaveError('You rejected the transaction!');
+      } else {
+        setSaveError('Contract error: ' + (error.reason || error.message || 'Check the ABI.'));
+      }
     }
   };
 
