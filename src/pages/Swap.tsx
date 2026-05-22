@@ -214,6 +214,15 @@ export default function Swap() {
   const [slippage, setSlippage] = useState('0.5');
   const [txReceipt, setTxReceipt] = useState<SuccessData | null>(null);
 
+  useEffect(() => {
+    if (txReceipt) {
+      const timer = setTimeout(() => {
+        setTxReceipt(null);
+      }, 30000);
+      return () => clearTimeout(timer);
+    }
+  }, [txReceipt]);
+
   // WMON Minimal ABI for Wrap/Unwrap
   const WMON_ABI = [
     "function deposit() public payable",
@@ -681,7 +690,7 @@ export default function Swap() {
   };
 
   return (
-    <div className={`min-h-screen transition-colors duration-500 overflow-x-hidden ${theme === 'dark' ? 'bg-[#0a0a0a] text-white' : 'bg-gray-50 text-black'}`}>
+    <div className={`relative min-h-screen transition-colors duration-500 overflow-x-hidden ${theme === 'dark' ? 'bg-[#0a0a0a] text-white' : 'bg-gray-50 text-black'}`}>
       {/* Decorative Blur Elements */}
       <div className="fixed top-0 left-0 w-full h-full pointer-events-none overflow-hidden z-0">
         <div className={`absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full blur-[150px] opacity-20 ${theme === 'dark' ? 'bg-[#ff6b9d]' : 'bg-[#ff6b9d]/30'}`} />
@@ -1177,25 +1186,21 @@ export default function Swap() {
       {/* Success Transaction Notification (Bottom Right) */}
       <AnimatePresence>
         {txReceipt && (
-          <div className="fixed bottom-8 right-8 z-[10000] flex flex-col items-end pointer-events-none">
+          <div className="absolute top-24 right-4 sm:right-8 z-[10000] flex flex-col items-end pointer-events-none">
             <motion.div 
               initial={{ x: 100, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
               exit={{ x: 100, opacity: 0 }}
               className="pointer-events-auto"
             >
-              <div className={`relative flex items-center gap-4 p-4 pr-12 rounded-3xl shadow-2xl border backdrop-blur-xl ${
+              <div className={`relative flex items-center gap-4 p-4 pr-12 rounded-3xl shadow-xl border backdrop-blur-xl ${
                 theme === 'dark' 
                   ? 'bg-slate-900/90 border-slate-700/50 text-white' 
                   : 'bg-white/90 border-slate-200 text-slate-900'
               }`}>
-                {/* Shimmer top line */}
-                <div className="absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-[#ff6b9d] to-transparent animate-shimmer" />
-
                 {/* Status Dot */}
                 <div className="relative flex-shrink-0">
-                  <div className="absolute inset-0 bg-[#ff6b9d] blur-lg opacity-40 animate-pulse" />
-                  <div className="relative w-10 h-10 bg-gradient-to-br from-[#ff6b9d] to-[#ff4d80] rounded-2xl flex items-center justify-center shadow-lg shadow-[#ff6b9d]/30">
+                  <div className="relative w-10 h-10 bg-[#10b981] rounded-2xl flex items-center justify-center shadow-lg">
                     <Check size={20} className="text-white" strokeWidth={3} />
                   </div>
                 </div>
