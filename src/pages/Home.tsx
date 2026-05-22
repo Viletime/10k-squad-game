@@ -77,10 +77,10 @@ export default function Home() {
   /* Stats: update weekly */
   const [nftStats, setNftStats] = useState({
     totalSupply: "3,333",
-    holders: "1,450+",
-    floorPrice: "2,850.15",
-    totalVolume: "1.2M+ MON",
-    volumeUsd: "$45.8K+",
+    holders: "1,183",
+    floorPrice: "1,371.48",
+    totalVolume: "1M+ MON",
+    volumeUsd: "~$30K+ USD",
     isLive: false
   });
   const [isStatsLoading, setIsStatsLoading] = useState(true);
@@ -97,11 +97,11 @@ export default function Home() {
             floorPrice: typeof data.floorPrice === 'number' ? data.floorPrice.toFixed(2) : "1,579.12",
             totalVolume: typeof data.totalVolume === 'number' ? 
               (data.totalVolume >= 1000000 ? 
-                (data.totalVolume / 1000000).toFixed(2) + "M+ MON" :
+                (Math.floor(data.totalVolume / 100000) / 10).toFixed(1).replace('.0', '') + "M+ MON" :
                 (data.totalVolume >= 1000 ? 
-                  (data.totalVolume / 1000 >= 10 ? (data.totalVolume / 1000).toFixed(0) : (data.totalVolume / 1000).toFixed(1)) + "K+ MON" : 
-                  data.totalVolume.toFixed(2) + " MON")) : "1.2M+ MON",
-            volumeUsd: data.volumeUsd || "$45.8K+",
+                  Math.floor(data.totalVolume / 1000) + "K+ MON" : 
+                  Math.floor(data.totalVolume) + " MON")) : (data.totalVolume || "1M+ MON"),
+            volumeUsd: data.volumeUsd ? (data.volumeUsd.startsWith('~') ? data.volumeUsd : `~${data.volumeUsd}`) : "~$30K+ USD",
             isLive: !data._isMock
           });
         }
@@ -112,8 +112,8 @@ export default function Home() {
       }
     }
     fetchStats();
-    // Refresh every 5 minutes
-    const interval = setInterval(fetchStats, 5 * 60 * 1000);
+    // Refresh every 1 minute
+    const interval = setInterval(fetchStats, 1 * 60 * 1000);
     return () => clearInterval(interval);
   }, []);
 
@@ -121,7 +121,7 @@ export default function Home() {
     { value: nftStats.totalSupply, label: "NFTs" },
     { value: nftStats.holders, label: "Holders" },
     { value: `${nftStats.floorPrice} MON`, label: "Floor" },
-    { value: nftStats.totalVolume, label: "Total Volume", sublabel: `~${nftStats.volumeUsd} USD` },
+    { value: nftStats.totalVolume, label: "Total Volume", sublabel: nftStats.volumeUsd },
   ];
 
   useEffect(() => {

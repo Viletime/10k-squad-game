@@ -64,6 +64,8 @@ export default function Traits() {
   
   const [traits, setTraits] = useState<Trait[]>([]);
   const [fullNFTs, setFullNFTs] = useState<any[]>([]);
+  const [myNFTs, setMyNFTs] = useState<any[]>([]);
+  const [loadingMyNFTs, setLoadingMyNFTs] = useState(false);
   const [collectionStats, setCollectionStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -72,13 +74,41 @@ export default function Traits() {
   const [copied, setCopied] = useState(false);
   
   // Arcade Collection States
-  const [activeTab, setActiveTab] = useState<'nfts' | 'traits'>('nfts');
+  const [activeTab, setActiveTab] = useState<'nfts' | 'traits' | 'my-nfts'>('nfts');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 24;
   
   // Sync States
   const [syncProgress, setSyncProgress] = useState<{ current: number, total: number, active: boolean }>({ current: 0, total: 3333, active: false });
+
+  // Fetch my NFTs when account changes
+  useEffect(() => {
+    if (!account) {
+      setMyNFTs([]);
+      return;
+    }
+
+    const fetchMyNFTs = async () => {
+      setLoadingMyNFTs(true);
+      try {
+        const res = await fetch(`/api/account-nfts?address=${account}&slug=the-10k-squad-350905768`);
+        if (res.ok) {
+          const data = await res.json();
+          setMyNFTs(data.nfts || data.assets || []);
+        } else {
+          setMyNFTs([]);
+        }
+      } catch (err) {
+        console.error("Failed to fetch my NFTs:", err);
+        setMyNFTs([]);
+      } finally {
+        setLoadingMyNFTs(false);
+      }
+    };
+
+    fetchMyNFTs();
+  }, [account]);
 
   // Reset page when filters change
   useEffect(() => {
@@ -464,7 +494,22 @@ export default function Traits() {
     };
 
     fetchAllData();
+    
+    // Refresh stats every 1 minute
+    const statsInterval = setInterval(async () => {
+      try {
+        const statsRes = await fetch('/api/nft-stats');
+        if (statsRes.ok) {
+          const statsData = await statsRes.json();
+          setCollectionStats(statsData);
+        }
+      } catch (err) {
+        console.error('Error polling stats in Traits:', err);
+      }
+    }, 1 * 60 * 1000);
+
     return () => {
+      clearInterval(statsInterval);
       window.removeEventListener('scroll', handleScroll);
       document.documentElement.classList.remove('scrollbar-hide');
       document.body.classList.remove('scrollbar-hide');
@@ -502,6 +547,46 @@ export default function Traits() {
     });
     return map;
   }, [traits]);
+
+  const myNftsFiltered = useMemo(() => {
+    if (!account) return [];
+    
+    // Use myNFTs fetched specifically for this account
+    let owned = myNFTs;
+    
+    // Apply the same search/filters as filteredNFTs
+    return owned.filter(nft => {
+      const id = nft.identifier || nft.token_id || '';
+      const name = nft.name || `10K SQUAD #${id}`;
+      const searchLower = search.toLowerCase();
+      const cleanSearch = search.replace('#', '').trim();
+      
+      const matchesSearch = search === '' || 
+        name.toLowerCase().includes(searchLower) || 
+        id === cleanSearch ||
+        id.includes(cleanSearch);
+      
+      const nftTraits = nft.traits || [];
+      
+      let matchesCategory = true;
+      if (selectedCategory && selectedCategory !== 'All') {
+        matchesCategory = nftTraits.some((t: any) => String(t.trait_type || '').trim() === selectedCategory);
+      }
+
+      let matchesTier = true;
+      if (selectedTier !== 'All') {
+        matchesTier = nftTraits.some((t: any) => {
+          const key = `${String(t.trait_type || '').trim().toLowerCase()}:${String(t.value || '').trim().toLowerCase()}`;
+          return traitTierMap.get(key) === selectedTier;
+        });
+      }
+      return matchesSearch && matchesCategory && matchesTier;
+    }).sort((a, b) => {
+      const idA = parseInt(a.identifier || a.token_id || '0', 10);
+      const idB = parseInt(b.identifier || b.token_id || '0', 10);
+      return idA - idB;
+    });
+  }, [myNFTs, account, search, selectedCategory, selectedTier, traitTierMap]);
 
   const filteredNFTs = useMemo(() => {
     return fullNFTs.filter(nft => {
@@ -541,15 +626,15 @@ export default function Traits() {
   }, [fullNFTs, search, selectedCategory, selectedTier, traitTierMap]);
 
   const totalPages = useMemo(() => {
-    const items = activeTab === 'nfts' ? filteredNFTs : filteredTraits;
+    const items = activeTab === 'my-nfts' ? myNftsFiltered : (activeTab === 'nfts' ? filteredNFTs : filteredTraits);
     return Math.ceil(items.length / itemsPerPage);
-  }, [activeTab, filteredNFTs, filteredTraits, itemsPerPage]);
+  }, [activeTab, filteredNFTs, filteredTraits, myNftsFiltered, itemsPerPage]);
 
   const paginatedItems = useMemo(() => {
-    const items = activeTab === 'nfts' ? filteredNFTs : filteredTraits;
+    const items = activeTab === 'my-nfts' ? myNftsFiltered : (activeTab === 'nfts' ? filteredNFTs : filteredTraits);
     const start = (currentPage - 1) * itemsPerPage;
     return items.slice(start, start + itemsPerPage);
-  }, [activeTab, filteredNFTs, filteredTraits, currentPage, itemsPerPage]);
+  }, [activeTab, filteredNFTs, filteredTraits, myNftsFiltered, currentPage, itemsPerPage]);
 
   const stats = {
     total: traits.length,
@@ -828,23 +913,22 @@ export default function Traits() {
                 ))}
               </div>
             </div>
-
+            
             {collectionStats && (
               <div className={`p-8 rounded-[2.5rem] border transition-colors ${theme === 'dark' ? 'border-white/5 bg-gradient-to-br from-white/5 to-transparent' : 'border-black/5 bg-gradient-to-br from-black/5 to-transparent'}`}>
-                 <div className="flex justify-between items-end">
-                    <div>
-                        <div className={`text-[9px] uppercase tracking-[0.3em] font-black mb-1 leading-none ${theme === 'dark' ? 'opacity-30' : 'text-black/40'}`}>Total Items</div>
-                        <div className="text-3xl font-black italic tabular-nums leading-none">{collectionStats.totalSupply || '3333'}</div>
+                 <div className="flex flex-col items-center text-center">
+                    <div className="text-3xl font-black italic tabular-nums leading-none mb-1">
+                      {typeof collectionStats.totalVolume === 'number' 
+                        ? (collectionStats.totalVolume >= 1000000
+                            ? (Math.floor(collectionStats.totalVolume / 100000) / 10).toFixed(1).replace('.0', '') + "M+ MON"
+                            : collectionStats.totalVolume >= 1000 
+                              ? Math.floor(collectionStats.totalVolume / 1000) + "K+ MON" 
+                              : Math.floor(collectionStats.totalVolume) + " MON")
+                        : (collectionStats.totalVolume || "1M+ MON")}
                     </div>
-                 </div>
-                 <div className="grid grid-cols-2 gap-6 mt-8">
-                    <div>
-                        <div className={`text-[9px] uppercase tracking-[0.3em] font-black mb-1 leading-none ${theme === 'dark' ? 'opacity-30' : 'text-black/40'}`}>Floor</div>
-                        <div className="text-lg font-black italic tabular-nums leading-none">{collectionStats.floorPrice || '1,579.12'} <span className="text-[10px] font-sans not-italic">MON</span></div>
-                    </div>
-                    <div>
-                        <div className={`text-[9px] uppercase tracking-[0.3em] font-black mb-1 leading-none ${theme === 'dark' ? 'opacity-30' : 'text-black/40'}`}>Holders</div>
-                        <div className="text-lg font-black italic tabular-nums leading-none">{collectionStats.holders || '1.1K'}</div>
+                    <div className={`text-[10px] uppercase tracking-[0.3em] font-black mb-2 leading-none ${theme === 'dark' ? 'opacity-40' : 'text-black/50'}`}>Total Volume</div>
+                    <div className={`text-sm font-bold opacity-60`}>
+                      {collectionStats.volumeUsd ? (collectionStats.volumeUsd.startsWith('~') ? collectionStats.volumeUsd : `~${collectionStats.volumeUsd}`) : '~$30K+ USD'}
                     </div>
                  </div>
               </div>
@@ -857,16 +941,33 @@ export default function Traits() {
           
           {/* NAVIGATION TABS */}
           <div className={`flex flex-col md:flex-row items-center justify-between gap-8 border-b pb-8 ${theme === 'dark' ? 'border-white/5' : 'border-black/5'}`}>
-             <div className="flex gap-16">
-                <div className={`text-3xl font-black uppercase italic tracking-tighter pb-8 relative ${theme === 'dark' ? 'text-white after:bg-white' : 'text-black after:bg-black'} after:absolute after:bottom-0 after:left-0 after:w-full after:h-1.5`}>
+             <div className="flex gap-8 sm:gap-16">
+                <button
+                  onClick={() => setActiveTab('nfts')}
+                  className={`text-2xl sm:text-3xl font-black uppercase italic tracking-tighter pb-4 sm:pb-8 relative transition-all duration-300 outline-none ${
+                    activeTab === 'nfts' 
+                      ? (theme === 'dark' ? 'text-white after:bg-white' : 'text-black after:bg-black') 
+                      : (theme === 'dark' ? 'text-white/30 hover:text-white/60' : 'text-black/30 hover:text-black/60')
+                  } ${activeTab === 'nfts' ? 'after:absolute after:bottom-0 after:left-0 after:w-full after:h-1 sm:after:h-1.5' : ''}`}
+                >
                   All NFT
-                </div>
+                </button>
+                <button
+                  onClick={() => setActiveTab('my-nfts')}
+                  className={`text-2xl sm:text-3xl font-black uppercase italic tracking-tighter pb-4 sm:pb-8 relative transition-all duration-300 outline-none ${
+                    activeTab === 'my-nfts' 
+                      ? (theme === 'dark' ? 'text-white after:bg-white' : 'text-black after:bg-black') 
+                      : (theme === 'dark' ? 'text-white/30 hover:text-white/60' : 'text-black/30 hover:text-black/60')
+                  } ${activeTab === 'my-nfts' ? 'after:absolute after:bottom-0 after:left-0 after:w-full after:h-1 sm:after:h-1.5' : ''}`}
+                >
+                  My NFTs
+                </button>
              </div>
              
              <div className={`flex items-center gap-4 text-[10px] uppercase font-black tracking-[0.3em] text-center ${theme === 'dark' ? 'opacity-30' : 'text-black/40'}`}>
                <span>Page {currentPage} of {totalPages || 1}</span>
                <div className={`w-1.5 h-1.5 rounded-full ${theme === 'dark' ? 'bg-white/20' : 'bg-black/20'}`} />
-               <span>{filteredNFTs.length.toLocaleString()} Items</span>
+               <span>{activeTab === 'my-nfts' ? myNftsFiltered.length.toLocaleString() : (activeTab === 'nfts' ? filteredNFTs.length.toLocaleString() : filteredTraits.length.toLocaleString())} Items</span>
              </div>
           </div>
 
@@ -877,42 +978,72 @@ export default function Traits() {
                    <div className="text-xs font-black uppercase tracking-[0.5em] opacity-20 animate-bounce">Accessing Database...</div>
                 </div>
              ) : (
-                <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6 gap-6 md:gap-10">
-                   {paginatedItems.map((item: any, i) => (
-                     <motion.div 
-                        key={item.id || item.identifier || i} 
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: (i % 12) * 0.04, duration: 0.4 }}
-                        className="group cursor-pointer relative"
-                        onClick={() => setSelectedNFT(item)}
-                      >
-                        <div className="aspect-square relative flex items-center justify-center">
-                           <img 
-                            src={item.image || item.image_url || item.display_image_url || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=400&q=80'} 
-                            alt={item.name} 
-                            referrerPolicy="no-referrer"
-                            className="w-full h-full object-contain rounded-3xl transition-transform duration-500 group-hover:scale-110 filter drop-shadow-2xl"
-                          />
-                          {(item.rarity || item.tier) && (
-                            <div className="absolute top-2 left-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                               <span 
-                                className="px-2 py-0.5 rounded-full text-white text-[7px] font-black tracking-widest uppercase backdrop-blur-md"
-                                style={{ backgroundColor: item.tier ? `${TIER_COLORS[item.tier]}CC` : '#ff6b9dCC' }}
-                               >
-                                 {item.rarity || item.tier}
-                               </span>
-                            </div>
-                          )}
-                        </div>
-                        <div className={`mt-3 flex flex-col items-center group-hover:opacity-100 transition-all ${theme === 'dark' ? 'opacity-40' : 'text-black/60 opacity-100'}`}>
-                           <h3 className="text-[9px] font-black italic tracking-widest uppercase truncate w-full text-center group-hover:text-[#ff6b9d]">
-                             {item.name || `10K SQUAD #${item.identifier || item.token_id}`}
-                           </h3>
-                        </div>
-                     </motion.div>
-                   ))}
-                </div>
+                <>
+                   {activeTab === 'my-nfts' && loadingMyNFTs && (
+                      <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 text-center">
+                          <div className="w-12 h-12 border-4 border-[#ff6b9d] border-t-transparent rounded-full animate-spin mb-4" />
+                          <div className="text-xl font-black uppercase italic tracking-widest animate-pulse">Loading Your NFTs...</div>
+                      </div>
+                   )}
+                   {activeTab === 'my-nfts' && !account && (
+                      <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 text-center">
+                          <Wallet size={48} className="opacity-20 mb-2" />
+                          <div className="text-xl font-black uppercase italic tracking-widest">Connect Wallet</div>
+                          <div className="text-xs sm:text-sm font-bold opacity-50 mb-6 max-w-sm">Connect your wallet to view your 10K Squad NFTs here.</div>
+                          <button
+                            onClick={() => setIsModalOpen(true)}
+                            className={`px-8 py-4 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all ${theme === 'dark' ? 'bg-white text-black hover:bg-gray-200' : 'bg-black text-white hover:bg-gray-800'}`}
+                          >
+                            Connect Wallet
+                          </button>
+                      </div>
+                   )}
+                   {activeTab === 'my-nfts' && account && !loadingMyNFTs && paginatedItems.length === 0 && (
+                      <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 text-center">
+                          <Search size={48} className="opacity-20 mb-2" />
+                          <div className="text-xl font-black uppercase italic tracking-widest">No NFTs Found</div>
+                          <div className="text-xs sm:text-sm font-bold opacity-50 max-w-sm">We couldn't find any 10K Squad NFTs in your connected wallet.</div>
+                      </div>
+                   )}
+                   {!(activeTab === 'my-nfts' && (!account || loadingMyNFTs || paginatedItems.length === 0)) && (
+                     <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6 gap-6 md:gap-10 border-t-0 p-2 sm:p-0">
+                        {paginatedItems.map((item: any, i) => (
+                          <motion.div 
+                             key={item.id || item.identifier || i} 
+                             initial={{ opacity: 0, y: 20 }}
+                             animate={{ opacity: 1, y: 0 }}
+                             transition={{ delay: (i % 12) * 0.04, duration: 0.4 }}
+                             className="group cursor-pointer relative"
+                             onClick={() => setSelectedNFT(item)}
+                           >
+                             <div className="aspect-square relative flex items-center justify-center">
+                                <img 
+                                 src={item.image || item.image_url || item.display_image_url || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=400&q=80'} 
+                                 alt={item.name} 
+                                 referrerPolicy="no-referrer"
+                                 className="w-full h-full object-contain rounded-3xl transition-transform duration-500 group-hover:scale-110 filter drop-shadow-2xl"
+                               />
+                               {(item.rarity || item.tier) && (
+                                 <div className="absolute top-2 left-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <span 
+                                     className="px-2 py-0.5 rounded-full text-white text-[7px] font-black tracking-widest uppercase backdrop-blur-md"
+                                     style={{ backgroundColor: item.tier ? `${TIER_COLORS[item.tier]}CC` : '#ff6b9dCC' }}
+                                    >
+                                      {item.rarity || item.tier}
+                                    </span>
+                                 </div>
+                               )}
+                             </div>
+                             <div className={`mt-3 flex flex-col items-center group-hover:opacity-100 transition-all ${theme === 'dark' ? 'opacity-40' : 'text-black/60 opacity-100'}`}>
+                                <h3 className="text-[9px] font-black italic tracking-widest uppercase truncate w-full text-center group-hover:text-[#ff6b9d]">
+                                  {item.name || `10K SQUAD #${item.identifier || item.token_id}`}
+                                </h3>
+                             </div>
+                          </motion.div>
+                        ))}
+                     </div>
+                   )}
+                </>
              )}
           </div>
 

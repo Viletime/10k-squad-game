@@ -2,7 +2,7 @@ import { createAppKit } from '@reown/appkit/react';
 import { EthersAdapter } from '@reown/appkit-adapter-ethers';
 
 // 1. Get projectId (with fallback demo key so it never crashes if empty)
-export const projectId = import.meta.env?.VITE_REOWN_PROJECT_ID || 'b56e464c737cbd1817863640b82b9b55';
+export const projectId = (import.meta as any).env?.VITE_REOWN_PROJECT_ID || 'b56e464c737cbd1817863640b82b9b55';
 
 // 2. Define Monad Mainnet Network
 export const monadMainnet = {
