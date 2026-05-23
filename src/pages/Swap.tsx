@@ -11,7 +11,7 @@ import {
   Search,
   Check,
   AlertCircle,
-  Power,
+  LogOut,
   X,
   Menu
 } from 'lucide-react';
@@ -717,10 +717,16 @@ export default function Swap() {
                   <span className="text-[9px] sm:text-[11px] font-bold font-mono">
                     {account.substring(0, 6)}...{account.substring(account.length - 4)}
                   </span>
-                  <button onClick={disconnectWallet} className="opacity-40 hover:opacity-100 transition-opacity">
-                    <Power size={12} className="text-red-400 sm:w-3.5 sm:h-3.5" />
-                  </button>
                 </div>
+                <motion.button 
+                  onClick={disconnectWallet} 
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  title="Disconnect Wallet"
+                  className={`p-2 rounded-2xl border transition-all cursor-pointer ${theme === 'dark' ? 'bg-white/5 border-white/10 hover:border-red-500/30 hover:bg-red-500/10 text-red-400' : 'bg-black/5 border-black/10 hover:border-red-500/30 hover:bg-red-500/10 text-red-500'}`}
+                >
+                  <LogOut size={16} />
+                </motion.button>
               </div>
             ) : (
               <button 

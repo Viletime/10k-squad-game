@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { FloatingParticles } from '../App';
-import { Volume2, VolumeX, ArrowLeft, Play, Trophy, Users, Zap, Sun as SunIcon, Moon as MoonIcon, Wallet, Menu, X } from 'lucide-react';
+import { Volume2, VolumeX, ArrowLeft, Play, Trophy, Users, Zap, Sun as SunIcon, Moon as MoonIcon, Wallet, Menu, X, LogOut } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { ethers } from 'ethers';
 import { useWallet } from '../lib/WalletContext';
@@ -156,6 +156,12 @@ export default function Game() {
   // Handle choice
   const handleChoice = (card: {id: number, src: string, matched: boolean}) => {
     if (disabled) return;
+    if (!account) {
+      setMsg('Connect wallet to play!');
+      setTimeout(() => setMsg(''), 2000);
+      setIsModalOpen(true);
+      return;
+    }
     playFlipSound();
     if (!timerActive && !allMatched) setTimerActive(true);
     choiceOne ? setChoiceTwo(card) : setChoiceOne(card);
@@ -314,9 +320,20 @@ export default function Game() {
         </Link>
         <div className={`flex items-center gap-3 sm:gap-6 ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
           {account ? (
-             <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl border border-current/10 bg-current/5">
-               <div className="w-2 h-2 rounded-full bg-green-500" />
-               <span className="text-[9px] font-black font-mono">{account.slice(0, 6)}...{account.slice(-4)}</span>
+             <div className="hidden sm:flex items-center gap-2">
+               <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-current/10 bg-current/5">
+                 <div className="w-2 h-2 rounded-full bg-green-500" />
+                 <span className="text-[9px] font-black font-mono">{account.slice(0, 6)}...{account.slice(-4)}</span>
+               </div>
+               <motion.button
+                 onClick={disconnectWallet}
+                 whileHover={{ scale: 1.1 }}
+                 whileTap={{ scale: 0.9 }}
+                 title="Disconnect Wallet"
+                 className="p-1.5 rounded-xl opacity-50 hover:opacity-100 hover:text-red-500 hover:bg-red-500/10 transition-all cursor-pointer"
+               >
+                 <LogOut size={16} />
+               </motion.button>
              </div>
           ) : (
             <motion.button
@@ -390,6 +407,24 @@ export default function Game() {
         )}
       </AnimatePresence>
 
+      {!account ? (
+        <main className="pt-28 pb-20 px-6 max-w-6xl mx-auto flex flex-col items-center justify-center min-h-[70vh]">
+          <div className={`p-10 rounded-[3rem] border shadow-2xl flex flex-col items-center justify-center gap-6 max-w-[400px] text-center w-full min-h-[300px] ${theme === 'dark' ? 'bg-[#0a0014]/90 backdrop-blur-xl border-[#ff6b9d]/30 text-white' : 'bg-white/90 backdrop-blur-xl border-2 border-[#ff6b9d] text-black'}`}>
+             <Wallet size={64} className="text-[#ff6b9d] mb-2" />
+             <h3 className="text-3xl font-black uppercase italic tracking-tighter text-[#ff6b9d]">ACCESS DENIED</h3>
+             <p className="text-xs font-bold uppercase tracking-[0.2em] opacity-60 mb-2">Connect your wallet to access the game board and save scores on-chain.</p>
+             <motion.button
+               whileHover={{ scale: 1.05, boxShadow: "0 0 20px rgba(255,107,157,0.4)" }}
+               whileTap={{ scale: 0.95 }}
+               onClick={() => setIsModalOpen(true)}
+               className="w-full flex items-center justify-center gap-3 px-6 py-4 rounded-[15px] text-sm font-black uppercase tracking-widest bg-[#ff6b9d] text-white transition-all hover:bg-[#ff4f8b]"
+             >
+               <Wallet size={18} />
+               Connect Wallet
+             </motion.button>
+          </div>
+        </main>
+      ) : (
       <main className="pt-28 pb-20 px-6 max-w-6xl mx-auto flex flex-col items-center text-center">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -777,6 +812,7 @@ export default function Game() {
 
 
       </main>
+      )}
 
       <footer className="py-10 text-center opacity-30 text-[10px] font-black uppercase tracking-[0.5em]">
         2026 THE 10K SQUAD GAME CENTER

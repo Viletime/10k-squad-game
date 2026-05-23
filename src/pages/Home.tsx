@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Sun as SunIcon, Moon as MoonIcon, Menu, X, ExternalLink, Globe, Wallet } from 'lucide-react';
+import { Sun as SunIcon, Moon as MoonIcon, Menu, X, ExternalLink, Globe, Wallet, LogOut } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { FloatingParticles, TransparentLogo, Marquee } from '../App';
 import { useWallet } from '../lib/WalletContext';
@@ -166,9 +166,20 @@ export default function Home() {
         {/* RIGHT PART: TOGGLE */}
         <div className={`flex-1 flex items-center justify-end gap-3 md:gap-6 ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
           {account ? (
-             <div className={`hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl border border-current/10 bg-current/5`}>
-               <div className="w-2 h-2 rounded-full bg-green-500" />
-               <span className="text-[9px] font-black font-mono">{account.slice(0, 6)}...{account.slice(-4)}</span>
+             <div className="hidden sm:flex items-center gap-2">
+               <div className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border border-current/10 bg-current/5`}>
+                 <div className="w-2 h-2 rounded-full bg-green-500" />
+                 <span className="text-[9px] font-black font-mono">{account.slice(0, 6)}...{account.slice(-4)}</span>
+               </div>
+               <motion.button
+                 onClick={disconnectWallet}
+                 whileHover={{ scale: 1.1 }}
+                 whileTap={{ scale: 0.9 }}
+                 title="Disconnect Wallet"
+                 className="p-1.5 rounded-xl opacity-50 hover:opacity-100 hover:text-red-500 hover:bg-red-500/10 transition-all cursor-pointer"
+               >
+                 <LogOut size={16} />
+               </motion.button>
              </div>
           ) : (
             <motion.button
