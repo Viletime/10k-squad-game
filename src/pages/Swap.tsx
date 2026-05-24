@@ -492,12 +492,18 @@ export default function Swap() {
   }, [fromAmount, fromToken, toToken, prices]);
 
   const handlePercentAmount = (percent: number) => {
-    const balance = balances[fromToken.symbol];
-    if (!balance || isNaN(parseFloat(balance))) return;
+    const balanceStr = balances[fromToken.symbol];
+    if (!balanceStr || isNaN(parseFloat(balanceStr))) return;
     
+    // For 100% exact amounts (except native MON which needs gas buffer)
+    if (percent === 100 && fromToken.address !== 'native') {
+      setFromAmount(balanceStr);
+      return;
+    }
+
     // For native MON, we should keep some for gas (approx 0.05 MON to be safe)
     const gasBuffer = fromToken.symbol === 'MON' ? 0.05 : 0;
-    const total = parseFloat(balance);
+    const total = parseFloat(balanceStr);
     const amount = Math.max(0, (total * (percent / 100)) - (percent === 100 ? gasBuffer : 0));
     
     if (amount <= 0) {
@@ -549,6 +555,17 @@ export default function Swap() {
         sanitizedAmountFrom = `${intPart}.${fracPart.substring(0, decimals)}`;
       }
       const fromAmountWei = ethers.parseUnits(sanitizedAmountFrom, decimals);
+
+      // Pre-flight balance check
+      const currentBalanceStr = balances[fromToken.symbol];
+      if (currentBalanceStr) {
+        const currentBalanceWei = ethers.parseUnits(currentBalanceStr, decimals);
+        if (fromAmountWei > currentBalanceWei) {
+          alert(`Insufficient ${fromToken.symbol} balance.`);
+          setIsSwapping(false);
+          return;
+        }
+      }
 
       // 1. Wrap/Unwrap Handlers
       if (fromToken.address === 'native' && toToken.address === WMON_ADDRESS) {
