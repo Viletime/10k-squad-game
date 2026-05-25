@@ -80,7 +80,7 @@ export default function Home() {
     holders: "1,183",
     floorPrice: "1,371.48",
     totalVolume: "1M+ MON",
-    volumeUsd: "~$30K+ USD",
+    volumeUsd: "~$41.6K+ USD",
     isLive: false
   });
   const [isStatsLoading, setIsStatsLoading] = useState(true);
@@ -95,13 +95,8 @@ export default function Home() {
             totalSupply: data.totalSupply?.toLocaleString() || "3,333",
             holders: data.holders?.toLocaleString() || "1,100+",
             floorPrice: typeof data.floorPrice === 'number' ? data.floorPrice.toFixed(2) : "1,579.12",
-            totalVolume: typeof data.totalVolume === 'number' ? 
-              (data.totalVolume >= 1000000 ? 
-                (Math.floor(data.totalVolume / 100000) / 10).toFixed(1).replace('.0', '') + "M+ MON" :
-                (data.totalVolume >= 1000 ? 
-                  Math.floor(data.totalVolume / 1000) + "K+ MON" : 
-                  Math.floor(data.totalVolume) + " MON")) : (data.totalVolume || "1M+ MON"),
-            volumeUsd: data.volumeUsd ? (data.volumeUsd.startsWith('~') ? data.volumeUsd : `~${data.volumeUsd}`) : "~$30K+ USD",
+            totalVolume: (data.totalVolume || "1M+ MON"),
+            volumeUsd: data.volumeUsd ? (data.volumeUsd.startsWith('~') ? data.volumeUsd : `~${data.volumeUsd}`) : "~$41.6K+ USD",
             isLive: !data._isMock
           });
         }
@@ -121,7 +116,6 @@ export default function Home() {
     { value: nftStats.totalSupply, label: "NFTs" },
     { value: nftStats.holders, label: "Holders" },
     { value: `${nftStats.floorPrice} MON`, label: "Floor" },
-    { value: nftStats.totalVolume, label: "Total Volume", sublabel: nftStats.volumeUsd },
   ];
 
   useEffect(() => {

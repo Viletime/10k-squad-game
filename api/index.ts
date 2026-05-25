@@ -198,7 +198,7 @@ app.get("/api/nft-stats", async (req, res) => {
     floorPrice: 1371.48,
     holders: 1183,
     totalVolume: "1M+ MON" as any, 
-    volumeUsd: "~$30K+ USD", 
+    volumeUsd: "~$41.6K+ USD", 
     _isMock: true,
     _note: "Values updated 2026-05-21"
   };
@@ -238,29 +238,33 @@ app.get("/api/nft-stats", async (req, res) => {
           const total = data.total || {};
           const rawVolume = total.volume || total.total_volume || 0;
           
-          const MON_MULTIPLIER = 64000;
           let finalVolume = rawVolume;
           if (rawVolume > 0 && rawVolume < 1000) {
-            finalVolume = rawVolume * MON_MULTIPLIER;
+            finalVolume = rawVolume * 64000;
           } else if (rawVolume === 0) {
             finalVolume = manualStats.totalVolume;
           }
           
           let volumeUsdFormatted = manualStats.volumeUsd;
-          if (finalVolume < 1000000) {
-            finalVolume = "1M+ MON" as any;
-            volumeUsdFormatted = "~$30K+ USD";
-          } else {
-            // OpenSea has ~27.5k USD for 821k+ MON. This means MON is ~$0.0335
-            // We apply the exact ratio to match OpenSea's UI.
-            const volumeUsdValue = finalVolume * 0.0335;
-            if (volumeUsdValue >= 30000) {
-                volumeUsdFormatted = `$${(Math.floor(volumeUsdValue / 100) / 10).toFixed(1)}K+ USD`;
-            } else if (volumeUsdValue > 1000) {
-                volumeUsdFormatted = `$${(Math.floor(volumeUsdValue / 100) / 10).toFixed(1)}K+`;
-            } else if (volumeUsdValue > 0) {
-                volumeUsdFormatted = `$${volumeUsdValue.toFixed(0)}+`;
+          if (typeof finalVolume === 'number' && finalVolume > 0) {
+            // Because finalVolume is in MON, but rawVolume * 64000. Wait, let's just use rawVolume * ethPrice for USD.
+            const volumeUsdValue = rawVolume * ethPrice;
+            if (volumeUsdValue >= 1000) {
+                volumeUsdFormatted = `~$${(Math.floor(volumeUsdValue / 100) / 10).toFixed(1)}K+ USD`;
+            } else {
+                volumeUsdFormatted = `~$${Math.floor(volumeUsdValue)} USD`;
             }
+            if (finalVolume >= 1000000) {
+              finalVolume = (Math.floor(finalVolume / 100000) / 10).toFixed(1).replace('.0', '') + "M+ MON" as any;
+            } else if (finalVolume >= 800000) {
+              finalVolume = "1M+ MON" as any;
+            } else if (finalVolume >= 1000) {
+              finalVolume = Math.floor(finalVolume / 1000) + "K+ MON" as any;
+            } else {
+              finalVolume = Math.floor(finalVolume) + " MON" as any;
+            }
+          } else if (finalVolume === manualStats.totalVolume || !finalVolume) {
+             finalVolume = manualStats.totalVolume;
           }
 
           return res.json({

@@ -349,12 +349,7 @@ export default function Game() {
             </motion.button>
           )}
 
-          <Link to="/traits" className="hidden sm:block text-[11px] uppercase font-bold tracking-[0.2em] opacity-50 hover:opacity-100 hover:text-[#ff6b9d] transition-all">
-            Collection
-          </Link>
-          <Link to="/swap" className="hidden sm:block text-[11px] uppercase font-bold tracking-[0.2em] opacity-50 hover:opacity-100 hover:text-[#ff6b9d] transition-all">
-            Swap
-          </Link>
+
           <motion.button 
             whileHover={{ scale: 1.2, rotate: 15 }} 
             whileTap={{ scale: 0.9 }}
@@ -387,9 +382,6 @@ export default function Game() {
           >
             <nav className="flex flex-col items-center gap-8 text-xl uppercase font-black italic tracking-widest text-center">
               <Link to="/#top" onClick={closeMenu} className="hover:text-[#ff6b9d]">Home</Link>
-              <Link to="/traits" onClick={closeMenu} className="hover:text-[#ff6b9d]">Collection</Link>
-              <Link to="/swap" onClick={closeMenu} className="hover:text-[#ff6b9d]">Swap</Link>
-              <Link to="/game" onClick={closeMenu} className="text-[#ff6b9d]">Play</Link>
               
               {!account && (
                 <motion.button

@@ -924,26 +924,6 @@ export default function Traits() {
                 ))}
               </div>
             </div>
-            
-            {collectionStats && (
-              <div className={`p-8 rounded-[2.5rem] border transition-colors ${theme === 'dark' ? 'border-white/5 bg-gradient-to-br from-white/5 to-transparent' : 'border-black/5 bg-gradient-to-br from-black/5 to-transparent'}`}>
-                 <div className="flex flex-col items-center text-center">
-                    <div className="text-3xl font-black italic tabular-nums leading-none mb-1">
-                      {typeof collectionStats.totalVolume === 'number' 
-                        ? (collectionStats.totalVolume >= 1000000
-                            ? (Math.floor(collectionStats.totalVolume / 100000) / 10).toFixed(1).replace('.0', '') + "M+ MON"
-                            : collectionStats.totalVolume >= 1000 
-                              ? Math.floor(collectionStats.totalVolume / 1000) + "K+ MON" 
-                              : Math.floor(collectionStats.totalVolume) + " MON")
-                        : (collectionStats.totalVolume || "1M+ MON")}
-                    </div>
-                    <div className={`text-[10px] uppercase tracking-[0.3em] font-black mb-2 leading-none ${theme === 'dark' ? 'opacity-40' : 'text-black/50'}`}>Total Volume</div>
-                    <div className={`text-sm font-bold opacity-60`}>
-                      {collectionStats.volumeUsd ? (collectionStats.volumeUsd.startsWith('~') ? collectionStats.volumeUsd : `~${collectionStats.volumeUsd}`) : '~$30K+ USD'}
-                    </div>
-                 </div>
-              </div>
-            )}
           </div>
         </aside>
 
