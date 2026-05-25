@@ -116,6 +116,7 @@ export default function Home() {
     { value: nftStats.totalSupply, label: "NFTs" },
     { value: nftStats.holders, label: "Holders" },
     { value: `${nftStats.floorPrice} MON`, label: "Floor" },
+    { value: nftStats.totalVolume, label: "Total Volume", sublabel: nftStats.volumeUsd },
   ];
 
   useEffect(() => {
