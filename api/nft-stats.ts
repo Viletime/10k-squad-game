@@ -18,7 +18,7 @@ export default async function handler(req: any, res: any) {
     totalSupply: 3333,
     floorPrice: 2850.15,
     holders: 1450,
-    totalVolume: 1224800, 
+    totalVolume: "1M+ MON", 
     volumeUsd: "$45.8K+", 
     _isMock: true,
     _note: "API Key missing or fetch failed"
@@ -42,13 +42,15 @@ export default async function handler(req: any, res: any) {
 
     if (!apiKey) {
       // Mesmo no mock, atualizamos o USD baseado no preço real do ETH pra ficar "fresco"
-      const mockVolumeUsdValue = manualStats.totalVolume * (ethPrice / 1000) * 0.01; // Simulação de peso
+      const fallbackVolumeNum = 1224800;
+      const mockVolumeUsdValue = fallbackVolumeNum * (ethPrice / 1000) * 0.01; // Simulação de peso
       // Na verdade, vamos apenas atualizar o USD do mock de forma mais "viva"
-      const volumeUsdValue = manualStats.totalVolume * 0.035; // Fator fixo aproximado
+      const volumeUsdValue = fallbackVolumeNum * 0.035; // Fator fixo aproximado
       const volumeUsdFormatted = `$${(volumeUsdValue / 1000).toFixed(1)}K+`;
       
       return res.status(200).json({
         ...manualStats,
+        totalVolume: "1M+ MON",
         volumeUsd: volumeUsdFormatted
       });
     }
@@ -74,17 +76,34 @@ export default async function handler(req: any, res: any) {
     // e convertemos para MON usando um fator (ex: 64,000 MON/ETH baseada na escala do usuário)
     // Se for maior, assumimos que já está na escala correta.
     const MON_MULTIPLIER = 64000;
-    let finalVolume = rawVolume;
+    let finalVolume: string | number = rawVolume;
     if (rawVolume > 0 && rawVolume < 1000) {
       finalVolume = rawVolume * MON_MULTIPLIER;
     } else if (rawVolume === 0) {
       finalVolume = manualStats.totalVolume;
     }
     
+    // Formatting logic to match api/index.ts
+    if (typeof finalVolume === 'number' && finalVolume > 0) {
+      if (finalVolume >= 1000000) {
+        finalVolume = (Math.floor(finalVolume / 100000) / 10).toFixed(1).replace('.0', '') + "M+ MON";
+      } else if (finalVolume >= 800000) {
+        finalVolume = "1M+ MON";
+      } else if (finalVolume >= 1000) {
+        finalVolume = Math.floor(finalVolume / 1000) + "K+ MON";
+      } else {
+        finalVolume = Math.floor(finalVolume) + " MON";
+      }
+    } else if (finalVolume === manualStats.totalVolume || !finalVolume) {
+       finalVolume = "1M+ MON"; // manualStats.totalVolume is a number here, but formatted is string
+    }
+    
     // Calcula volume em USD usando o preço do ETH (assumindo que o volume base é ETH-equivalent)
     // Se o volume já estiver em MON, e 1 MON != 1 ETH, precisaríamos do preço do MON.
     // Mas o usuário vinculou ~$28K a 12.77 MON/ETH, então usaremos o volume 'real' (ETH) para o USD.
-    const volumeUsdValue = (rawVolume > 0 ? rawVolume : (manualStats.totalVolume / MON_MULTIPLIER)) * ethPrice;
+    // Usa um fallback de 1224800 para calcular USD se o rawVolume for 0
+    const fallbackVolumeNum = 1224800;
+    const volumeUsdValue = (rawVolume > 0 ? rawVolume : (fallbackVolumeNum / MON_MULTIPLIER)) * ethPrice;
     const volumeUsdFormatted = volumeUsdValue > 1000 ? 
       `$${(volumeUsdValue / 1000).toFixed(1)}K+` : 
       `$${volumeUsdValue.toFixed(0)}+`;
