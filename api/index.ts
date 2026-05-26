@@ -315,7 +315,7 @@ if (process.env.NODE_ENV !== "production" && !process.env.VERCEL) {
   
   // No need to app.listen() here on Vercel, we export the app
   if (!process.env.VERCEL) {
-    const PORT = Number(process.env.PORT) || 3000;
+    const PORT = 3000;
     app.listen(PORT, "0.0.0.0", () => {
       console.log(`Server running on http://localhost:${PORT}`);
     });

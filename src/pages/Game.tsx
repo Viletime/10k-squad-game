@@ -34,6 +34,7 @@ export default function Game() {
   const [combo, setCombo] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState('');
+  const [isGuest, setIsGuest] = useState(false);
 
   const [isScrolled, setIsScrolled] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -156,8 +157,8 @@ export default function Game() {
   // Handle choice
   const handleChoice = (card: {id: number, src: string, matched: boolean}) => {
     if (disabled) return;
-    if (!account) {
-      setMsg('Connect wallet to play!');
+    if (!account && !isGuest) {
+      setMsg('Connect wallet or play as guest!');
       setTimeout(() => setMsg(''), 2000);
       setIsModalOpen(true);
       return;
@@ -399,21 +400,31 @@ export default function Game() {
         )}
       </AnimatePresence>
 
-      {!account ? (
+      {!account && !isGuest ? (
         <main className="pt-28 pb-20 px-6 max-w-6xl mx-auto flex flex-col items-center justify-center min-h-[70vh]">
           <div className={`p-10 rounded-[3rem] border shadow-2xl flex flex-col items-center justify-center gap-6 max-w-[400px] text-center w-full min-h-[300px] ${theme === 'dark' ? 'bg-[#0a0014]/90 backdrop-blur-xl border-[#ff6b9d]/30 text-white' : 'bg-white/90 backdrop-blur-xl border-2 border-[#ff6b9d] text-black'}`}>
              <Wallet size={64} className="text-[#ff6b9d] mb-2" />
              <h3 className="text-3xl font-black uppercase italic tracking-tighter text-[#ff6b9d]">ACCESS DENIED</h3>
-             <p className="text-xs font-bold uppercase tracking-[0.2em] opacity-60 mb-2">Connect your wallet to access the game board and save scores on-chain.</p>
-             <motion.button
-               whileHover={{ scale: 1.05, boxShadow: "0 0 20px rgba(255,107,157,0.4)" }}
-               whileTap={{ scale: 0.95 }}
-               onClick={() => setIsModalOpen(true)}
-               className="w-full flex items-center justify-center gap-3 px-6 py-4 rounded-[15px] text-sm font-black uppercase tracking-widest bg-[#ff6b9d] text-white transition-all hover:bg-[#ff4f8b]"
-             >
-               <Wallet size={18} />
-               Connect Wallet
-             </motion.button>
+             <p className="text-xs font-bold uppercase tracking-[0.2em] opacity-60 mb-2">Connect your wallet to save scores on-chain, or play as a guest.</p>
+             <div className="flex flex-col gap-3 w-full">
+               <motion.button
+                 whileHover={{ scale: 1.05, boxShadow: "0 0 20px rgba(255,107,157,0.4)" }}
+                 whileTap={{ scale: 0.95 }}
+                 onClick={() => setIsModalOpen(true)}
+                 className="w-full flex items-center justify-center gap-3 px-6 py-4 rounded-[15px] text-sm font-black uppercase tracking-widest bg-[#ff6b9d] text-white transition-all hover:bg-[#ff4f8b]"
+               >
+                 <Wallet size={18} />
+                 Connect Wallet
+               </motion.button>
+               <motion.button
+                 whileHover={{ scale: 1.05 }}
+                 whileTap={{ scale: 0.95 }}
+                 onClick={() => setIsGuest(true)}
+                 className={`w-full flex items-center justify-center gap-3 px-6 py-4 rounded-[15px] text-sm font-black uppercase tracking-widest transition-all ${theme === 'dark' ? 'bg-white/10 hover:bg-white/20 text-white' : 'bg-black/5 hover:bg-black/10 text-black'}`}
+               >
+                 Play as Guest
+               </motion.button>
+             </div>
           </div>
         </main>
       ) : (
