@@ -162,8 +162,9 @@ export const Marquee = ({ items, reverse = false, theme }: { items: string[], re
 
 // --- ROUTING ---
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
-import React, { Suspense } from 'react';
+import React, { Suspense, useEffect } from 'react';
 import { WalletProvider } from './lib/WalletContext';
+import { AnimatePresence, motion } from 'motion/react';
 
 // Lazy loaded pages
 const Home = React.lazy(() => import('./pages/Home'));
@@ -191,18 +192,39 @@ const PageLoader = () => (
   </div>
 );
 
+const PageTransition = ({ children }: { children: React.ReactNode }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 15 }}
+    animate={{ opacity: 1, y: 0 }}
+    exit={{ opacity: 0, y: -15 }}
+    transition={{ duration: 0.4, ease: "easeOut" }}
+    className="min-h-screen"
+  >
+    {children}
+  </motion.div>
+);
+
+const AnimatedRoutes = () => {
+  const location = useLocation();
+  return (
+    <AnimatePresence mode="wait">
+      <Routes location={location} key={location.pathname}>
+        <Route path="/" element={<PageTransition><Home /></PageTransition>} />
+        <Route path="/game" element={<PageTransition><Game /></PageTransition>} />
+        <Route path="/traits" element={<PageTransition><Traits /></PageTransition>} />
+        <Route path="/swap" element={<PageTransition><Swap /></PageTransition>} />
+      </Routes>
+    </AnimatePresence>
+  );
+};
+
 export default function App() {
   return (
     <WalletProvider>
       <Router>
         <ScrollToTop />
         <Suspense fallback={<PageLoader />}>
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/game" element={<Game />} />
-            <Route path="/traits" element={<Traits />} />
-            <Route path="/swap" element={<Swap />} />
-          </Routes>
+          <AnimatedRoutes />
         </Suspense>
       </Router>
     </WalletProvider>

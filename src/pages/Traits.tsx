@@ -1088,50 +1088,72 @@ export default function Traits() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className={`fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-10 ${theme === 'light' ? 'light' : 'dark'}`}
+            onClick={(e) => {
+              if (e.target === e.currentTarget) setSelectedNFT(null);
+            }}
           >
+            {/* Dark/blurred theatrical backdrop */}
+            <div className="absolute inset-0 bg-black/80 backdrop-blur-xl pointer-events-none" />
+            
             <motion.div 
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className={`relative w-full max-w-6xl border rounded-[3rem] overflow-hidden shadow-[0_0_100px_rgba(0,0,0,0.8)] flex flex-col md:flex-row max-h-[90vh] ${
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              className={`relative z-10 w-full max-w-6xl border rounded-[3rem] overflow-hidden shadow-[0_0_150px_rgba(0,0,0,0.9)] flex flex-col md:flex-row max-h-[90vh] ${
                 theme === 'dark' 
                   ? 'bg-[#0f0f0f] border-white/10 text-white' 
-                  : 'bg-white border-black/10 text-black shadow-2xl'
+                  : 'bg-[#f8f8f8] border-black/10 text-black shadow-2xl'
               }`}
             >
               <button 
                 onClick={() => setSelectedNFT(null)}
-                className={`absolute top-6 right-6 z-10 w-12 h-12 rounded-full backdrop-blur-md flex items-center justify-center hover:bg-[#ff6b9d] transition-all hover:text-white ${
-                  theme === 'dark' ? 'bg-black/40 text-white' : 'bg-black/5 text-black'
+                className={`absolute top-6 right-6 z-20 w-12 h-12 rounded-full backdrop-blur-xl flex items-center justify-center hover:bg-[#ff6b9d] transition-all hover:text-white hover:scale-110 active:scale-95 ${
+                  theme === 'dark' ? 'bg-black/60 text-white' : 'bg-white text-black drop-shadow-md'
                 }`}
               >
                 <X size={24} />
               </button>
 
               {/* LEFT: Image & Actions */}
-              <div className={`w-full md:w-[45%] p-6 lg:p-10 flex flex-col gap-8 border-r ${
-                theme === 'dark' ? 'bg-[#0a0a0a] border-white/5' : 'bg-black/[0.02] border-black/5'
+              <div className={`relative w-full md:w-[45%] p-6 lg:p-10 flex flex-col gap-8 border-r overflow-hidden ${
+                theme === 'dark' ? 'bg-[#050505] border-white/5' : 'bg-white border-black/5'
               }`}>
-                <div className="flex-1 flex items-center justify-center min-h-0 min-w-0">
-                  <img 
+                {/* BLURRED BACKGROUND GLOW / REFLECTION */}
+                <div 
+                   className="absolute inset-0 opacity-40 mix-blend-screen pointer-events-none scale-150 blur-3xl z-0"
+                   style={{ 
+                     backgroundImage: `url(${selectedNFT.image || selectedNFT.image_url || selectedNFT.display_image_url || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=400&q=80'})`,
+                     backgroundPosition: 'center',
+                     backgroundSize: 'cover'
+                   }} 
+                />
+                
+                <div className="flex-1 flex items-center justify-center min-h-0 min-w-0 z-10">
+                  <motion.img 
+                    initial={{ scale: 0.95 }}
+                    animate={{ scale: 1 }}
+                    transition={{ duration: 0.5 }}
                     src={selectedNFT.image || selectedNFT.image_url || selectedNFT.display_image_url || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=400&q=80'} 
                     alt={selectedNFT.name} 
                     referrerPolicy="no-referrer"
-                    className="max-h-full max-w-full object-contain rounded-[2.5rem] filter drop-shadow-[0_35px_35px_rgba(0,0,0,0.6)]"
+                    className="max-h-full max-w-full object-contain rounded-[2.5rem] filter drop-shadow-[0_35px_45px_rgba(0,0,0,0.8)] relative z-10 transition-transform duration-700 hover:scale-[1.03]"
                   />
                 </div>
                 
-                <div className="flex gap-4 shrink-0">
+                <div className="flex gap-4 shrink-0 z-10">
                   <button 
                     onClick={() => downloadImage(selectedNFT.image || selectedNFT.image_url || selectedNFT.display_image_url, selectedNFT.name || 'nft')}
-                    className="flex-1 flex items-center justify-center gap-3 bg-white text-black h-14 rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-[#ff6b9d] hover:text-white transition-all active:scale-95 shadow-2xl"
+                    className={`flex-1 flex items-center justify-center gap-3 h-14 rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-[#ff6b9d] hover:text-white transition-all active:scale-95 shadow-xl ${
+                      theme === 'dark' ? 'bg-white text-black' : 'bg-black text-white'
+                    }`}
                   >
                     <Download size={18} />
                     Download
                   </button>
                   <button 
                     onClick={() => copyImageToClipboard(selectedNFT.image || selectedNFT.image_url || selectedNFT.display_image_url)}
-                    className="flex-1 flex items-center justify-center gap-3 bg-white/5 border border-white/10 h-14 rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-white/10 transition-all active:scale-95 shadow-lg"
+                    className="flex-1 flex items-center justify-center gap-3 h-14 rounded-2xl font-black uppercase text-[10px] tracking-widest transition-all active:scale-95 shadow-lg backdrop-blur-md bg-white/10 hover:bg-white/20 border border-white/20 text-current"
                   >
                     {copied ? <Check className="text-green-500" size={18} /> : <Copy size={18} />}
                     {copied ? 'Copied!' : 'Copy Image'}
