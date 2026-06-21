@@ -123,6 +123,13 @@ export const TransparentLogo = ({ src, className, theme }: { src: string, classN
 };
 
 export const Marquee = ({ items, reverse = false, theme }: { items: string[], reverse?: boolean, theme: 'light' | 'dark' }) => {
+  const getRarity = (index: number) => {
+    const mod = index % 7;
+    if (mod === 0) return { label: 'Legendary', color: 'bg-amber-500/90 text-amber-50 border-amber-400/60 shadow-[0_0_15px_rgba(245,158,11,0.5)]' };
+    if (mod === 3 || mod === 5) return { label: 'Rare', color: 'bg-purple-600/90 text-purple-50 border-purple-400/60 shadow-[0_0_15px_rgba(147,51,234,0.5)]' };
+    return { label: 'Common', color: 'bg-gray-500/90 text-gray-50 border-gray-400/60 shadow-[0_0_15px_rgba(107,114,128,0.5)]' };
+  };
+
   return (
     <div 
       className="relative flex overflow-hidden w-full py-12 group/marquee"
@@ -132,29 +139,36 @@ export const Marquee = ({ items, reverse = false, theme }: { items: string[], re
       }}
     >
       <div className={`flex ${reverse ? 'animate-marquee-reverse' : 'animate-marquee'} will-change-transform`} style={{ width: 'max-content' }}>
-        {[...items, ...items].map((src, i) => (
-          <motion.div
-            key={i}
-            whileHover={{ 
-              scale: 1.05, 
-              zIndex: 50,
-              borderColor: "rgba(155, 89, 182, 1)"
-            }}
-            transition={{ type: "spring", stiffness: 300, damping: 20 }}
-            className={`flex-shrink-0 w-[240px] h-[240px] rounded-[3.5rem] overflow-hidden mx-2 relative cursor-pointer border-2 transition-all duration-300 will-change-transform
-              ${theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-black/5 border-black/10'}`}
-          >
-            <motion.img 
-              whileHover={{ scale: 1.05 }}
-              transition={{ duration: 0.6 }}
-              src={src} 
-              alt="NFT" 
-              loading="lazy" 
-              decoding="async"
-              className="w-full h-full object-cover" 
-            />
-          </motion.div>
-        ))}
+        {[...items, ...items].map((src, i) => {
+          const originalIndex = i % items.length;
+          const rarity = getRarity(originalIndex);
+          return (
+            <motion.div
+              key={i}
+              whileHover={{ 
+                scale: 1.05, 
+                zIndex: 50,
+                borderColor: "rgba(155, 89, 182, 1)"
+              }}
+              transition={{ type: "spring", stiffness: 300, damping: 20 }}
+              className={`flex-shrink-0 w-[240px] h-[240px] rounded-[3.5rem] overflow-hidden mx-2 relative cursor-pointer border-2 transition-all duration-300 will-change-transform
+                ${theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-black/5 border-black/10'}`}
+            >
+              <motion.img 
+                whileHover={{ scale: 1.05 }}
+                transition={{ duration: 0.6 }}
+                src={src} 
+                alt="NFT" 
+                loading="lazy" 
+                decoding="async"
+                className="w-full h-full object-cover" 
+              />
+              <div className={`absolute top-4 right-4 px-3 py-1 rounded-full text-xs font-bold tracking-wider uppercase border backdrop-blur-md ${rarity.color}`}>
+                {rarity.label}
+              </div>
+            </motion.div>
+          );
+        })}
       </div>
     </div>
   );
