@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
+import { Heart } from 'lucide-react';
 
 // --- COMPONENTS ---
 
@@ -123,6 +124,43 @@ export const TransparentLogo = ({ src, className, theme }: { src: string, classN
 };
 
 export const Marquee = ({ items, reverse = false, theme }: { items: string[], reverse?: boolean, theme: 'light' | 'dark' }) => {
+  const [favorites, setFavorites] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem('nft_favorites');
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+      return [];
+    }
+  });
+
+  useEffect(() => {
+    const handleStorageChange = () => {
+      try {
+        const saved = localStorage.getItem('nft_favorites');
+        if (saved) setFavorites(JSON.parse(saved));
+      } catch (e) {}
+    };
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('favoritesChanged', handleStorageChange);
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('favoritesChanged', handleStorageChange);
+    };
+  }, []);
+
+  const toggleFavorite = (e: React.MouseEvent, src: string) => {
+    e.stopPropagation();
+    e.preventDefault();
+    setFavorites(prev => {
+      const newFavs = prev.includes(src) ? prev.filter(f => f !== src) : [...prev, src];
+      try {
+        localStorage.setItem('nft_favorites', JSON.stringify(newFavs));
+      } catch {}
+      window.dispatchEvent(new Event('favoritesChanged'));
+      return newFavs;
+    });
+  };
+
   const getRarity = (index: number) => {
     const mod = index % 7;
     if (mod === 0) return { label: 'Legendary', color: 'bg-amber-500/90 text-amber-50 border-amber-400/60 shadow-[0_0_15px_rgba(245,158,11,0.5)]' };
@@ -142,6 +180,7 @@ export const Marquee = ({ items, reverse = false, theme }: { items: string[], re
         {[...items, ...items].map((src, i) => {
           const originalIndex = i % items.length;
           const rarity = getRarity(originalIndex);
+          const isFavorite = favorites.includes(src);
           return (
             <motion.div
               key={i}
@@ -163,9 +202,30 @@ export const Marquee = ({ items, reverse = false, theme }: { items: string[], re
                 decoding="async"
                 className="w-full h-full object-cover" 
               />
-              <div className={`absolute top-4 right-4 px-3 py-1 rounded-full text-xs font-bold tracking-wider uppercase border backdrop-blur-md ${rarity.color}`}>
+              <div className={`absolute top-4 right-4 px-3 py-1 rounded-full text-xs font-bold tracking-wider uppercase border backdrop-blur-md z-10 ${rarity.color}`}>
                 {rarity.label}
               </div>
+              <motion.button
+                onClick={(e) => toggleFavorite(e, src)}
+                whileHover={{ scale: 1.15 }}
+                whileTap={{ scale: 0.8 }}
+                className={`absolute top-4 left-4 p-2.5 rounded-full z-10 backdrop-blur-md border border-white/20 transition-all ${
+                  isFavorite ? 'bg-red-500/20 shadow-[0_0_20px_rgba(239,68,68,0.5)]' : 'bg-black/20 hover:bg-black/40'
+                }`}
+              >
+                <motion.div
+                  initial={false}
+                  animate={{ 
+                    scale: isFavorite ? [1, 1.5, 1] : 1,
+                  }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <Heart 
+                    size={20} 
+                    className={`transition-colors ${isFavorite ? 'fill-red-500 text-red-500' : 'text-white'}`} 
+                  />
+                </motion.div>
+              </motion.button>
             </motion.div>
           );
         })}
