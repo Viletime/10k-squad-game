@@ -236,9 +236,8 @@ export const Marquee = ({ items, reverse = false, theme }: { items: string[], re
 
 // --- ROUTING ---
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
-import React, { Suspense, useEffect } from 'react';
+import React, { Suspense } from 'react';
 import { WalletProvider } from './lib/WalletContext';
-import { AnimatePresence, motion } from 'motion/react';
 
 // Lazy loaded pages
 const Home = React.lazy(() => import('./pages/Home'));
